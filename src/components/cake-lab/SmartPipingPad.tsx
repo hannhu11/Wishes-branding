@@ -9,7 +9,7 @@ import {
   Undo2,
   Smile,
 } from "lucide-react";
-import { DrawPoint, DrawStroke, SmartDrawingState } from "./types";
+import { DrawPoint, DrawStroke, SmartDrawingState, CakeShape } from "./types";
 import { renderPipingToCanvas, filterMinDistance } from "./SmartPipingEngine";
 
 interface SmartPipingPadProps {
@@ -17,6 +17,7 @@ interface SmartPipingPadProps {
   onUpdateDrawing: (updater: (prev: SmartDrawingState) => SmartDrawingState) => void;
   cakeColor: string;
   cakeSize?: number;
+  cakeShape?: CakeShape;
 }
 
 const PRESET_CALLIGRAPHY = [
@@ -42,16 +43,18 @@ export default function SmartPipingPad({
   onUpdateDrawing,
   cakeColor,
   cakeSize = 16,
+  cakeShape = "round",
 }: SmartPipingPadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [currentStroke, setCurrentStroke] = useState<DrawPoint[]>([]);
+  const [, setCurrentStroke] = useState<DrawPoint[]>([]);
+  const currentStrokeRef = useRef<DrawPoint[]>([]);
   const [activeColor, setActiveColor] = useState<string>("#4A2E1B");
   const [activeGauge, setActiveGauge] = useState<number>(2);
 
-  // Compute total drawn length for Baker Feasibility Meter
+  // Compute total drawn length for Baker Feasibility Meter (including handwritten & preset text)
   const totalStrokeLength = useMemo(() => {
-    return drawingState.strokes.reduce((acc, stroke) => {
+    const drawnLen = drawingState.strokes.reduce((acc, stroke) => {
       if (!stroke.points || stroke.points.length < 2) return acc + 0.02;
       let len = 0;
       for (let i = 1; i < stroke.points.length; i++) {
@@ -61,7 +64,11 @@ export default function SmartPipingPad({
       }
       return acc + len;
     }, 0);
-  }, [drawingState.strokes]);
+
+    const activeText = (drawingState.customText || drawingState.presetText || "").trim();
+    const textLen = activeText.length * 0.075;
+    return drawnLen + textLen;
+  }, [drawingState.strokes, drawingState.customText, drawingState.presetText]);
 
   // Max piping ink capacity proportional to cake diameter (10cm = 1.8 units, 16cm = 3.5, 24cm = 6.0)
   const maxCapacity = useMemo(() => {
@@ -92,6 +99,13 @@ export default function SmartPipingPad({
     const rawX = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     const rawY = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
 
+    if (cakeShape === "rectangle") {
+      return {
+        x: Math.max(0.12, Math.min(0.88, rawX)),
+        y: Math.max(0.12, Math.min(0.88, rawY)),
+      };
+    }
+
     // Clamp within 82% safe boundary (radius 0.41 from center 0.5, 0.5)
     const dx = rawX - 0.5;
     const dy = rawY - 0.5;
@@ -113,6 +127,7 @@ export default function SmartPipingPad({
     }
     setIsDrawing(true);
     const pt = getCanvasCoords(e);
+    currentStrokeRef.current = [pt];
     setCurrentStroke([pt]);
 
     // Live feedback dot on start
@@ -135,10 +150,12 @@ export default function SmartPipingPad({
       e.preventDefault();
     }
     const pt = getCanvasCoords(e);
-    setCurrentStroke((prev) => [...prev, pt]);
+    const prevPt = currentStrokeRef.current[currentStrokeRef.current.length - 1];
+    currentStrokeRef.current.push(pt);
+    setCurrentStroke([...currentStrokeRef.current]);
 
     // Live feedback drawing
-    if (canvasRef.current) {
+    if (canvasRef.current && prevPt) {
       const ctx = canvasRef.current.getContext("2d");
       if (ctx) {
         ctx.beginPath();
@@ -148,12 +165,9 @@ export default function SmartPipingPad({
         ctx.lineJoin = "round";
         const w = canvasRef.current.width;
         const h = canvasRef.current.height;
-        const last = currentStroke[currentStroke.length - 1];
-        if (last) {
-          ctx.moveTo(last.x * w, last.y * h);
-          ctx.lineTo(pt.x * w, pt.y * h);
-          ctx.stroke();
-        }
+        ctx.moveTo(prevPt.x * w, prevPt.y * h);
+        ctx.lineTo(pt.x * w, pt.y * h);
+        ctx.stroke();
       }
     }
   };
@@ -162,9 +176,9 @@ export default function SmartPipingPad({
     if (!isDrawing) return;
     setIsDrawing(false);
 
-    if (currentStroke.length >= 1) {
-      const filtered =
-        currentStroke.length === 1 ? currentStroke : filterMinDistance(currentStroke, 2);
+    const pts = currentStrokeRef.current;
+    if (pts.length >= 1) {
+      const filtered = pts.length === 1 ? pts : filterMinDistance(pts, 2);
       const newStroke: DrawStroke = {
         points: filtered,
         color: activeColor,
@@ -176,6 +190,7 @@ export default function SmartPipingPad({
         strokes: [...prev.strokes, newStroke],
       }));
     }
+    currentStrokeRef.current = [];
     setCurrentStroke([]);
   };
 
@@ -239,12 +254,18 @@ export default function SmartPipingPad({
       <div className="relative w-full aspect-square max-w-[280px] mx-auto rounded-3xl overflow-hidden border-2 border-dashed border-wishes-cherry/40 shadow-inner bg-gradient-to-b from-white/90 to-wishes-pink/10 flex items-center justify-center touch-none select-none">
         {/* Simulated Cake Top Disc Background */}
         <div
-          className="absolute inset-4 rounded-full shadow-inner opacity-60 border border-black/10 transition-colors"
+          className={`absolute inset-4 shadow-inner opacity-60 border border-black/10 transition-all ${
+            cakeShape === "rectangle" ? "rounded-2xl" : "rounded-full"
+          }`}
           style={{ backgroundColor: cakeColor }}
         />
 
         {/* Safe Piping Zone Boundary Guide (82% of diameter) */}
-        <div className="absolute inset-7 rounded-full border border-dashed border-wishes-cherry/40 pointer-events-none flex items-start justify-center">
+        <div
+          className={`absolute inset-7 border border-dashed border-wishes-cherry/40 pointer-events-none flex items-start justify-center ${
+            cakeShape === "rectangle" ? "rounded-xl" : "rounded-full"
+          }`}
+        >
           <span className="text-[7.5px] font-bold text-wishes-cherry/80 bg-white/85 px-1.5 py-0.5 rounded-full mt-0.5 shadow-2xs">
             Vùng an toàn (Không chạm viền Lambeth)
           </span>

@@ -25,6 +25,8 @@ import {
   Palette,
   Cake,
   Boxes,
+  ShieldAlert,
+  Lock,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -52,18 +54,50 @@ import BakingBlueprintModal from "./cake-lab/BakingBlueprintModal";
 /**
  * Live Estimated Pricing and Serving Capacity aligned with Proposal (Slides 59-64)
  */
-export function getCakePricing(shape: CakeShape, size: number) {
+export function getCakePricing(shape: CakeShape, size: number, portion: number = 1) {
   if (shape === "cinnamon-roll") {
-    return { price: "55.000 VNĐ", priceNum: 55000, serving: "1 người • Khẩu phần sáng" };
+    const unit = 55000;
+    const total = portion === 1 ? unit : portion === 3 ? 150000 : 280000;
+    const serving =
+      portion === 1
+        ? "1 người • Khẩu phần sáng"
+        : portion === 3
+        ? "2-3 người • Set 3 Bánh quế"
+        : "4-6 người • Hộp tiệc 6 bánh";
+    return { price: `${total.toLocaleString("vi-VN")} VNĐ`, priceNum: total, serving };
   }
   if (shape === "croissant") {
-    return { price: "45.000 VNĐ", priceNum: 45000, serving: "1 người • Bơ Pháp 81 lớp" };
+    const unit = 45000;
+    const total = portion === 1 ? unit : portion === 3 ? 125000 : 235000;
+    const serving =
+      portion === 1
+        ? "1 người • Bơ Pháp 81 lớp"
+        : portion === 3
+        ? "2-3 người • Set 3 Croissant"
+        : "4-6 người • Hộp tiệc 6 bánh";
+    return { price: `${total.toLocaleString("vi-VN")} VNĐ`, priceNum: total, serving };
   }
   if (shape === "egg-tart") {
-    return { price: "35.000 VNĐ", priceNum: 35000, serving: "1 người • Custard Bồ Đào Nha" };
+    const unit = 35000;
+    const total = portion === 1 ? unit : portion === 3 ? 95000 : 180000;
+    const serving =
+      portion === 1
+        ? "1 người • Custard Bồ Đào Nha"
+        : portion === 3
+        ? "2-3 người • Set 3 Tart trứng"
+        : "4-6 người • Hộp tiệc 6 bánh";
+    return { price: `${total.toLocaleString("vi-VN")} VNĐ`, priceNum: total, serving };
   }
   if (shape === "cookie") {
-    return { price: "40.000 VNĐ", priceNum: 40000, serving: "1 người • Soft Cookie New York" };
+    const unit = 40000;
+    const total = portion === 1 ? unit : portion === 3 ? 110000 : 210000;
+    const serving =
+      portion === 1
+        ? "1 người • Soft Cookie New York"
+        : portion === 3
+        ? "2-3 người • Set 3 Cookie mềm"
+        : "4-6 người • Hộp quà 6 Cookie";
+    return { price: `${total.toLocaleString("vi-VN")} VNĐ`, priceNum: total, serving };
   }
   if (shape === "two-tier") {
     return { price: "890.000 VNĐ", priceNum: 890000, serving: "15-20 người • Tiệc cưới & Gala" };
@@ -89,7 +123,7 @@ export function getCakePricing(shape: CakeShape, size: number) {
 /**
  * Step-Driven Cinematic Camera Rig:
  * Interpolates camera position and OrbitControls target when user advances steps,
- * releasing control immediately when user starts manual orbit drag.
+ * then cleanly relinquishes control so autoRotate and user orbit are smooth and unconstrained.
  */
 function CameraRig({
   activeStep,
@@ -102,28 +136,38 @@ function CameraRig({
 }) {
   const { camera } = useThree();
   const isInteractingRef = useRef(false);
+  const isTransitioningRef = useRef(false);
   const targetCamPos = useRef(new THREE.Vector3(0, 1.8, 4.2));
   const targetLookAt = useRef(new THREE.Vector3(0, 0, 0));
+  const transitionStartRef = useRef(0);
 
   useEffect(() => {
-    const controls = controlsRef.current;
-    if (!controls) return;
-    const onStart = () => {
-      isInteractingRef.current = true;
-    };
-    const onEnd = () => {
-      isInteractingRef.current = false;
-    };
-    controls.addEventListener("start", onStart);
-    controls.addEventListener("end", onEnd);
+    const checkInterval = setInterval(() => {
+      const controls = controlsRef.current;
+      if (controls) {
+        clearInterval(checkInterval);
+        const onStart = () => {
+          isInteractingRef.current = true;
+          isTransitioningRef.current = false;
+        };
+        const onEnd = () => {
+          isInteractingRef.current = false;
+        };
+        controls.addEventListener("start", onStart);
+        controls.addEventListener("end", onEnd);
+      }
+    }, 100);
+
     return () => {
-      controls.removeEventListener("start", onStart);
-      controls.removeEventListener("end", onEnd);
+      clearInterval(checkInterval);
     };
   }, [controlsRef]);
 
   useEffect(() => {
     isInteractingRef.current = false;
+    isTransitioningRef.current = true;
+    transitionStartRef.current = performance.now();
+
     if (activeStep === 1) {
       targetCamPos.current.set(0, 1.8, 4.2);
       targetLookAt.current.set(0, 0, 0);
@@ -140,11 +184,18 @@ function CameraRig({
   }, [activeStep, isCutawayMode]);
 
   useFrame(() => {
-    if (isInteractingRef.current) return;
+    if (!isTransitioningRef.current || isInteractingRef.current) return;
+
     camera.position.lerp(targetCamPos.current, 0.06);
     if (controlsRef.current) {
       controlsRef.current.target.lerp(targetLookAt.current, 0.06);
       controlsRef.current.update();
+    }
+
+    const dist = camera.position.distanceTo(targetCamPos.current);
+    const elapsed = performance.now() - transitionStartRef.current;
+    if (dist < 0.02 || elapsed > 1500) {
+      isTransitioningRef.current = false;
     }
   });
 
@@ -162,15 +213,26 @@ export default function CakeLab() {
   const [shapeCategory, setShapeCategory] = useState<"celebration" | "daily">("celebration");
   const [shape, setShape] = useState<CakeShape>("round");
   const [size, setSize] = useState<number>(16);
+  const [dailyPortion, setDailyPortion] = useState<1 | 3 | 6>(1);
   const [sponge, setSponge] = useState<SpongeType>("vanilla-genoise");
+
+  // Smart Pâtissier Guardrail: Auto-doweling and soft-sponge lockout for 2-Tier & size >= 20
+  useEffect(() => {
+    if ((shape === "two-tier" || size >= 20) && sponge === "valrhona-cacao") {
+      setSponge("vanilla-genoise");
+    }
+  }, [shape, size, sponge]);
 
   // Step 2: Internal Layering (Cutaway)
   const [gelee, setGelee] = useState<GeleeType>("strawberry-compote");
   const [mousse, setMousse] = useState<MousseType>("mascarpone-chantilly");
   const [isCutawayMode, setIsCutawayMode] = useState<boolean>(false);
 
-  // Live dynamic pricing & serving calculator
-  const currentPricing = useMemo(() => getCakePricing(shape, size), [shape, size]);
+  // Live dynamic pricing & serving calculator aligned with Proposal (Slides 59-64)
+  const currentPricing = useMemo(
+    () => getCakePricing(shape, size, dailyPortion),
+    [shape, size, dailyPortion]
+  );
 
   // Step change with automatic cutaway toggle on Stage 2
   const handleStepChange = (newStep: number) => {
@@ -525,7 +587,12 @@ export default function CakeLab() {
                     </label>
                     <div className="flex gap-1 bg-white/70 p-0.5 rounded-lg border border-wishes-pink/30">
                       <button
-                        onClick={() => setShapeCategory("celebration")}
+                        onClick={() => {
+                          setShapeCategory("celebration");
+                          if (!["round", "heart", "rectangle", "two-tier"].includes(shape)) {
+                            setShape("round");
+                          }
+                        }}
                         className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${
                           shapeCategory === "celebration"
                             ? "bg-wishes-cherry text-white shadow-xs"
@@ -535,7 +602,12 @@ export default function CakeLab() {
                         🎂 Celebration (4)
                       </button>
                       <button
-                        onClick={() => setShapeCategory("daily")}
+                        onClick={() => {
+                          setShapeCategory("daily");
+                          if (!["cinnamon-roll", "croissant", "egg-tart", "cookie"].includes(shape)) {
+                            setShape("cinnamon-roll");
+                          }
+                        }}
                         className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${
                           shapeCategory === "daily"
                             ? "bg-amber-800 text-white shadow-xs"
@@ -590,86 +662,181 @@ export default function CakeLab() {
                   </div>
                 </div>
 
-                {/* Cake Diameter Snap Pills */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-bold text-wishes-chocolate/80">
-                      Kích Thước Đường Kính (Cake Diameter)
-                    </label>
-                    <span className="text-[10px] font-medium text-wishes-chocolate/60">
-                      Đế bánh chuẩn khẩu phần
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {availableSizes.map((s) => {
-                      const sInfo = getCakePricing(shape, s);
-                      const isSelected = size === s;
-                      return (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => setSize(s)}
-                          className={`p-2.5 rounded-xl text-left transition-all border flex flex-col justify-between ${
-                            isSelected
-                              ? "bg-wishes-chocolate text-white border-wishes-chocolate shadow-sm"
-                              : "bg-white/70 text-wishes-chocolate border-wishes-pink/30 hover:bg-white"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between w-full">
-                            <span className="text-xs font-bold">Ø {s}cm</span>
-                            <span
-                              className={`text-[10px] font-mono font-semibold ${
-                                isSelected ? "text-wishes-pink" : "text-wishes-cherry"
-                              }`}
-                            >
-                              {sInfo.price.replace(" VNĐ", "k")}
-                            </span>
-                          </div>
-                          <div
-                            className={`text-[9px] mt-1 leading-tight line-clamp-1 ${
-                              isSelected ? "text-white/80" : "text-wishes-chocolate/60"
+                {/* Size or Portion Selector */}
+                {shapeCategory === "celebration" ? (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-xs font-bold text-wishes-chocolate/80">
+                        Kích Thước Đường Kính (Cake Diameter)
+                      </label>
+                      <span className="text-[10px] font-medium text-wishes-chocolate/60">
+                        Đế bánh chuẩn khẩu phần
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {availableSizes.map((s) => {
+                        const sInfo = getCakePricing(shape, s);
+                        const isSelected = size === s;
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => setSize(s)}
+                            className={`p-2.5 rounded-xl text-left transition-all border flex flex-col justify-between ${
+                              isSelected
+                                ? "bg-wishes-chocolate text-white border-wishes-chocolate shadow-sm"
+                                : "bg-white/70 text-wishes-chocolate border-wishes-pink/30 hover:bg-white"
                             }`}
-                            title={sInfo.serving}
                           >
-                            {sInfo.serving}
-                          </div>
-                        </button>
-                      );
-                    })}
+                            <div className="flex items-center justify-between w-full">
+                              <span className="text-xs font-bold">Ø {s}cm</span>
+                              <span
+                                className={`text-[10px] font-mono font-semibold ${
+                                  isSelected ? "text-wishes-pink" : "text-wishes-cherry"
+                                }`}
+                              >
+                                {sInfo.price.replace(" VNĐ", "k")}
+                              </span>
+                            </div>
+                            <div
+                              className={`text-[9px] mt-1 leading-tight line-clamp-1 ${
+                                isSelected ? "text-white/80" : "text-wishes-chocolate/60"
+                              }`}
+                              title={sInfo.serving}
+                            >
+                              {sInfo.serving}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-xs font-bold text-wishes-chocolate/80">
+                        Khẩu Phần Daily Baked (Portion Selector - Slide 62)
+                      </label>
+                      <span className="text-[10px] font-medium text-amber-800">
+                        Hộp quà & Set thưởng thức
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { portion: 1 as const, name: "1 Cái", sub: "Cá nhân" },
+                        { portion: 3 as const, name: "Set 3 Cái", sub: "2-3 người" },
+                        { portion: 6 as const, name: "Set 6 Cái", sub: "Hộp tiệc" },
+                      ].map((p) => {
+                        const pInfo = getCakePricing(shape, size, p.portion);
+                        const isSelected = dailyPortion === p.portion;
+                        return (
+                          <button
+                            key={p.portion}
+                            type="button"
+                            onClick={() => setDailyPortion(p.portion)}
+                            className={`p-2.5 rounded-xl text-left transition-all border flex flex-col justify-between ${
+                              isSelected
+                                ? "bg-amber-800 text-white border-amber-800 shadow-sm"
+                                : "bg-white/70 text-wishes-chocolate border-wishes-pink/30 hover:bg-white"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <span className="text-xs font-bold">{p.name}</span>
+                              <span
+                                className={`text-[10px] font-mono font-semibold ${
+                                  isSelected ? "text-amber-200" : "text-amber-800"
+                                }`}
+                              >
+                                {pInfo.price.replace(" VNĐ", "k")}
+                              </span>
+                            </div>
+                            <div
+                              className={`text-[9px] mt-1 leading-tight line-clamp-1 ${
+                                isSelected ? "text-white/80" : "text-wishes-chocolate/60"
+                              }`}
+                              title={pInfo.serving}
+                            >
+                              {pInfo.serving}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Smart Pâtissier Guardrail Dowel Banner */}
+                {(shape === "two-tier" || size >= 20) && (
+                  <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 text-xs flex items-start gap-2.5">
+                    <ShieldAlert className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="space-y-0.5">
+                      <div className="font-bold flex items-center gap-1.5">
+                        <span>Smart Pâtissier Guardrail: Gia Cố Kết Cấu Tự Động</span>
+                      </div>
+                      <p className="text-[10px] text-amber-800/80 leading-relaxed">
+                        Bánh {shape === "two-tier" ? "2 tầng cung đình" : `kích thước lớn Ø${size}cm`} tự động kích hoạt hệ thống <strong>4 Trụ đỡ thực phẩm Ø6mm + Đế lót trung tâm</strong> trong 3D Cutaway. Cốt bánh Chiffon mềm xốp bị khóa để chống sụt lún khi vận chuyển (SOP Slide 38).
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Sponge Cake Selection */}
                 <div>
                   <label className="text-xs font-bold text-wishes-chocolate/80 block mb-2">
-                    Loại Cốt Bánh (Sponge Cake Type)
+                    {shapeCategory === "daily"
+                      ? "Độ Nướng & Cốt Bánh (Crust & Crumb)"
+                      : "Loại Cốt Bánh (Sponge Cake Type)"}
                   </label>
                   <div className="space-y-1.5">
-                    {SPONGE_OPTIONS.map((sp) => (
-                      <button
-                        key={sp.id}
-                        onClick={() => setSponge(sp.id)}
-                        className={`w-full p-2.5 rounded-xl text-xs font-bold text-left transition-all border flex items-center justify-between ${
-                          sponge === sp.id
-                            ? "bg-white border-2 border-wishes-cherry shadow-sm"
-                            : "bg-white/60 border-wishes-pink/20 hover:bg-white text-wishes-chocolate"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <span
-                            className="w-3.5 h-3.5 rounded-full border border-black/20"
-                            style={{ backgroundColor: sp.color }}
-                          />
-                          <div>
-                            <div className="text-wishes-chocolate">{sp.name}</div>
-                            <div className="text-[10px] text-wishes-chocolate/70 font-normal">
-                              {sp.sub}
+                    {SPONGE_OPTIONS.map((sp) => {
+                      const isChiffonLocked =
+                        (shape === "two-tier" || size >= 20) && sp.id === "valrhona-cacao";
+                      return (
+                        <button
+                          key={sp.id}
+                          disabled={isChiffonLocked}
+                          onClick={() => !isChiffonLocked && setSponge(sp.id)}
+                          className={`w-full p-2.5 rounded-xl text-xs font-bold text-left transition-all border flex items-center justify-between ${
+                            isChiffonLocked
+                              ? "bg-gray-100/70 border-gray-200 text-gray-400 cursor-not-allowed opacity-60"
+                              : sponge === sp.id
+                              ? "bg-white border-2 border-wishes-cherry shadow-sm"
+                              : "bg-white/60 border-wishes-pink/20 hover:bg-white text-wishes-chocolate"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span
+                              className="w-3.5 h-3.5 rounded-full border border-black/20"
+                              style={{ backgroundColor: sp.color }}
+                            />
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span
+                                  className={
+                                    isChiffonLocked ? "text-gray-400 line-through" : "text-wishes-chocolate"
+                                  }
+                                >
+                                  {sp.name}
+                                </span>
+                                {isChiffonLocked && (
+                                  <span className="text-[8.5px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                                    <Lock className="w-2.5 h-2.5" /> Khóa (Chống sụt lún)
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-wishes-chocolate/70 font-normal">
+                                {isChiffonLocked
+                                  ? "Chiffon mềm dễ sụt lún - Khuyến nghị dùng Genoise"
+                                  : sp.sub}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        {sponge === sp.id && <Check className="w-3.5 h-3.5 text-wishes-cherry" />}
-                      </button>
-                    ))}
+                          {sponge === sp.id && !isChiffonLocked && (
+                            <Check className="w-3.5 h-3.5 text-wishes-cherry" />
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -681,10 +848,14 @@ export default function CakeLab() {
                 <div className="border-b border-wishes-chocolate/10 pb-3 flex items-center justify-between">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-wishes-cherry">
-                      Giai đoạn 2 / 5 • Giải Phẫu 3D
+                      {shapeCategory === "daily"
+                        ? "Giai đoạn 2 / 5 • Nhân Chảy 3D"
+                        : "Giai đoạn 2 / 5 • Giải Phẫu 3D"}
                     </span>
                     <h3 className="text-lg font-serif-swash font-bold text-wishes-chocolate">
-                      2. Phết Nhân & Tầng Mousse
+                      {shapeCategory === "daily"
+                        ? "2. Nhân Chảy Bên Trong (Fill-in Molten Core)"
+                        : "2. Phết Nhân & Tầng Mousse"}
                     </h3>
                   </div>
                   <button
@@ -698,7 +869,9 @@ export default function CakeLab() {
                 {/* Fruit Gelee Layer */}
                 <div>
                   <label className="text-xs font-bold text-wishes-chocolate/80 block mb-2">
-                    Lớp Mứt Gelée Trái Cây (Compote Layer)
+                    {shapeCategory === "daily"
+                      ? "Nhân Chảy Trái Cây / Mứt Tươi (Fruit Coulis)"
+                      : "Lớp Mứt Gelée Trái Cây (Compote Layer)"}
                   </label>
                   <div className="space-y-1.5">
                     {GELEE_OPTIONS.map((g) => (
@@ -732,7 +905,9 @@ export default function CakeLab() {
                 {/* Mousse Layer */}
                 <div>
                   <label className="text-xs font-bold text-wishes-chocolate/80 block mb-2">
-                    Tầng Mousse Béo Ngậy (Cream Mousse Layer)
+                    {shapeCategory === "daily"
+                      ? "Kem Custard & Sốt Đậm Đặc (Molten Core)"
+                      : "Tầng Mousse Béo Ngậy (Cream Mousse Layer)"}
                   </label>
                   <div className="space-y-1.5">
                     {MOUSSE_OPTIONS.map((m) => (
@@ -778,34 +953,40 @@ export default function CakeLab() {
               <div className="space-y-4">
                 <div className="border-b border-wishes-chocolate/10 pb-3">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-wishes-cherry">
-                    Giai đoạn 3 / 5 • Vật Liệu & Màu Sắc
+                    {shapeCategory === "daily"
+                      ? "Giai đoạn 3 / 5 • Sốt Rưới & Màu Sắc"
+                      : "Giai đoạn 3 / 5 • Vật Liệu & Màu Sắc"}
                   </span>
                   <h3 className="text-lg font-serif-swash font-bold text-wishes-chocolate">
-                    3. Áo Lớp Kem Phủ Bề Mặt (Finishing & SSS)
+                    {shapeCategory === "daily"
+                      ? "3. Sốt Phủ & Glaze (Drizzle)"
+                      : "3. Áo Lớp Kem Phủ Bề Mặt (Finishing & SSS)"}
                   </h3>
                 </div>
 
                 {/* Finishing Texture Style */}
                 <div>
                   <label className="text-xs font-bold text-wishes-chocolate/80 block mb-2">
-                    Trường Phái Hoàn Thiện Bề Mặt (Surface Style)
+                    {shapeCategory === "daily"
+                      ? "Kiểu Sốt Rưới & Tráng Phủ (Drizzle & Glaze Style)"
+                      : "Trường Phái Hoàn Thiện Bề Mặt (Surface Style)"}
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       {
                         id: "rustic-buttercream" as FrostingFinish,
-                        title: "Rustic Butter",
-                        sub: "Gợn dao phết mộc",
+                        title: shapeCategory === "daily" ? "Cream Cheese" : "Rustic Butter",
+                        sub: shapeCategory === "daily" ? "Sốt phô mai béo" : "Gợn dao phết mộc",
                       },
                       {
                         id: "mirror-glaze" as FrostingFinish,
                         title: "Mirror Glaze",
-                        sub: "Tráng gương thủy tinh",
+                        sub: shapeCategory === "daily" ? "Sốt siro óng ánh" : "Tráng gương thủy tinh",
                       },
                       {
                         id: "velvet-spray" as FrostingFinish,
-                        title: "Velvet Spray",
-                        sub: "Phun nhung tuyết mịn",
+                        title: shapeCategory === "daily" ? "Powder Sugar" : "Velvet Spray",
+                        sub: shapeCategory === "daily" ? "Rắc đường tuyết mịn" : "Phun nhung tuyết mịn",
                       },
                     ].map((f) => (
                       <button
@@ -827,7 +1008,9 @@ export default function CakeLab() {
                 {/* Frosting Color Palette */}
                 <div>
                   <label className="text-xs font-bold text-wishes-chocolate/80 block mb-2">
-                    Bảng Màu Thực Phẩm Chuẩn Pantone ({currentPantone})
+                    {shapeCategory === "daily"
+                      ? `Màu Sốt Phủ Chuẩn Pantone (${currentPantone})`
+                      : `Bảng Màu Thực Phẩm Chuẩn Pantone (${currentPantone})`}
                   </label>
                   <div className="grid grid-cols-4 sm:grid-cols-4 gap-2">
                     {FROSTING_PALETTE.map((c) => (
@@ -950,6 +1133,7 @@ export default function CakeLab() {
                   onUpdateDrawing={setDrawingState}
                   cakeColor={frostingColor}
                   cakeSize={size}
+                  cakeShape={shape}
                 />
 
                 {/* Toppings & Accessories Grid */}
@@ -1195,7 +1379,8 @@ export default function CakeLab() {
             <div className="py-4 space-y-2 text-[11px] border-b border-dashed border-wishes-chocolate/30">
               <div className="flex justify-between">
                 <span>
-                  1× {shape === "round"
+                  {shapeCategory === "daily" ? (dailyPortion === 1 ? "1× " : `${dailyPortion}× `) : "1× "}
+                  {shape === "round"
                     ? "Round Celebration Cake"
                     : shape === "heart"
                     ? "Wonky Heart Cake"
@@ -1209,7 +1394,8 @@ export default function CakeLab() {
                     ? "French Butter Croissant"
                     : shape === "egg-tart"
                     ? "Custard Egg Tart"
-                    : "Artisanal Soft Cookie"} ({size}cm)
+                    : "Artisanal Soft Cookie"}{" "}
+                  ({shapeCategory === "daily" ? (dailyPortion === 1 ? "Khẩu phần 1 cái" : `Set ${dailyPortion} cái`) : `${size}cm`})
                 </span>
                 <span className="font-bold text-wishes-chocolate">{currentPricing.price}</span>
               </div>

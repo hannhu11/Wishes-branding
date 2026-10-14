@@ -35,17 +35,19 @@ export function createFrostingBumpMap(): THREE.CanvasTexture | null {
   const data = imgData.data;
 
   for (let y = 0; y < size; y++) {
-    // Subtle horizontal palette-knife bands
-    const band = Math.sin(y * 0.18) * 16 + Math.cos(y * 0.05) * 10;
+    const ny = y / size;
+    // Organic horizontal palette-knife spatula sweep bands
+    const band = Math.sin(ny * Math.PI * 4) * 16 + Math.cos(ny * Math.PI * 2) * 10;
     for (let x = 0; x < size; x++) {
+      const nx = x / size;
       const idx = (y * size + x) * 4;
-      const swirl = Math.sin(x * 0.04 + band * 0.08 + Math.cos(y * 0.06) * 1.8) * 12;
-      const microNoise = (Math.random() - 0.5) * 10;
+      const swirl = Math.sin(nx * Math.PI * 2 + band * 0.08 + Math.cos(ny * Math.PI * 3) * 1.5) * 12;
+      const microNoise = (Math.random() - 0.5) * 8;
 
-      // Micro air pockets in buttercream
+      // Micro air pockets in whipped buttercream
       let pit = 0;
-      if (Math.random() < 0.0018) {
-        pit = -32;
+      if (Math.random() < 0.002) {
+        pit = -28;
       }
 
       const val = Math.min(255, Math.max(0, 128 + band + swirl + microNoise + pit));
@@ -60,7 +62,7 @@ export function createFrostingBumpMap(): THREE.CanvasTexture | null {
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(2, 2);
+  texture.repeat.set(2, 1);
   texture.needsUpdate = true;
   return texture;
 }
@@ -122,12 +124,63 @@ export function createCrumbBumpMap(): THREE.CanvasTexture | null {
 }
 
 /**
- * Fluted Lambeth Shell Geometry for Royal Wilton #21 borders.
- * Features teardrop taper profile: head swells to 1.25x radius, curls upward, and tapers to 0.25x.
+ * Creates an artisanal cake body geometry with soft, slightly rounded palette-knife rims
+ * to eliminate CG-rigidity and CNC mechanical 90-degree edges.
  */
-export function createLambethShellGeometry(baseRadius: number = 0.072): THREE.BufferGeometry {
+export function createArtisanalCakeGeometry(
+  radius: number = 1.5,
+  height: number = 1.0,
+  bevelRadius: number = 0.04
+): THREE.BufferGeometry {
+  const points: THREE.Vector2[] = [];
+  const halfH = height / 2;
+  const segments = 8;
+
+  // Center bottom
+  points.push(new THREE.Vector2(0, -halfH));
+  // Flat bottom
+  points.push(new THREE.Vector2(radius - bevelRadius, -halfH));
+  // Bottom rounded rim
+  for (let i = 0; i <= segments; i++) {
+    const a = -Math.PI / 2 + (i / segments) * (Math.PI / 2);
+    points.push(
+      new THREE.Vector2(
+        radius - bevelRadius + Math.cos(a) * bevelRadius,
+        -halfH + bevelRadius + Math.sin(a) * bevelRadius
+      )
+    );
+  }
+  // Side wall
+  points.push(new THREE.Vector2(radius, halfH - bevelRadius));
+  // Top softened rim (palette-knife rounded edge)
+  for (let i = 0; i <= segments; i++) {
+    const a = (i / segments) * (Math.PI / 2);
+    points.push(
+      new THREE.Vector2(
+        radius - bevelRadius + Math.cos(a) * bevelRadius,
+        halfH - bevelRadius + Math.sin(a) * bevelRadius
+      )
+    );
+  }
+  // Top flat surface to center
+  points.push(new THREE.Vector2(0, halfH));
+
+  const geom = new THREE.LatheGeometry(points, 64);
+  geom.computeVertexNormals();
+  return geom;
+}
+
+/**
+ * Fluted Lambeth Shell Geometry for Royal Wilton #21 borders.
+ * Features 3D teardrop taper profile: head swells to 1.25x radius, curls upward, and tapers to 0.25x
+ * with 8 fluted star ridges spanning both height (dy) and radial thickness (dz), overlapping seamlessly.
+ */
+export function createLambethShellGeometry(
+  baseRadius: number = 0.075,
+  length: number = 0.35
+): THREE.BufferGeometry {
   const geom = new THREE.BufferGeometry();
-  const segments = 14;
+  const segments = 16;
   const points = 8;
   const numVerticesPerRing = points * 2;
   const positions: number[] = [];
@@ -137,29 +190,30 @@ export function createLambethShellGeometry(baseRadius: number = 0.072): THREE.Bu
   for (let i = 0; i <= segments; i++) {
     const t = i / segments;
     let radiusScale = 0.35;
-    if (t < 0.25) {
-      const u = t / 0.25;
-      radiusScale = 0.35 + (1.25 - 0.35) * Math.sin(u * Math.PI * 0.5);
+    if (t < 0.22) {
+      const u = t / 0.22;
+      radiusScale = 0.65 + (1.25 - 0.65) * Math.sin(u * Math.PI * 0.5);
     } else {
-      const u = (t - 0.25) / 0.75;
+      const u = (t - 0.22) / 0.78;
       radiusScale = 1.25 - (1.25 - 0.25) * Math.sin(u * Math.PI * 0.5);
     }
 
     const rOuter = baseRadius * radiusScale;
     const rInner = rOuter * (1 - 0.24);
 
-    // Shell curved arc trajectory
-    const xCenter = (t - 0.3) * 0.15;
-    const yCenter = Math.sin(t * Math.PI) * 0.035 - t * 0.012;
-    const zCenter = (1 - Math.cos(t * Math.PI * 0.5)) * 0.018;
+    // Shell curved arc trajectory along tangential X and upward curl Y
+    const xCenter = (t - 0.5) * length;
+    const yCenter = Math.sin(t * Math.PI) * 0.026 + (1 - t) * 0.012;
+    const zCenter = (1 - Math.cos(t * Math.PI)) * 0.015;
 
     for (let j = 0; j < numVerticesPerRing; j++) {
       const angle = (j / numVerticesPerRing) * Math.PI * 2;
       const r = j % 2 === 0 ? rOuter : rInner;
-      const rx = Math.cos(angle) * r;
-      const ry = Math.sin(angle) * r;
+      // Cross section is in the YZ plane (perpendicular to tangential travel X)
+      const dy = Math.sin(angle) * r; // Vertical height
+      const dz = Math.cos(angle) * r; // Radial thickness
 
-      positions.push(xCenter + rx, yCenter + ry, zCenter);
+      positions.push(xCenter, yCenter + dy, zCenter + dz);
       uvs.push(j / numVerticesPerRing, t);
     }
   }
@@ -176,18 +230,18 @@ export function createLambethShellGeometry(baseRadius: number = 0.072): THREE.Bu
     }
   }
 
-  // Cap start
+  // Cap start (head)
   const startCenterIdx = positions.length / 3;
-  positions.push(-0.3 * 0.15, 0, 0);
+  positions.push(-0.5 * length, 0.012, 0);
   uvs.push(0.5, 0);
   for (let j = 0; j < numVerticesPerRing; j++) {
     const nextJ = (j + 1) % numVerticesPerRing;
     indices.push(startCenterIdx, nextJ, j);
   }
 
-  // Cap end
+  // Cap end (tail)
   const endCenterIdx = positions.length / 3;
-  positions.push(0.7 * 0.15, -0.012, 0.018);
+  positions.push(0.5 * length, 0, 0);
   uvs.push(0.5, 1);
   const lastRingOffset = segments * numVerticesPerRing;
   for (let j = 0; j < numVerticesPerRing; j++) {
@@ -205,6 +259,7 @@ export function createLambethShellGeometry(baseRadius: number = 0.072): THREE.Bu
 
 /**
  * Custom vertex-deformed sphere with indented stem cavity (lúm cuống cherry)
+ * per prompt formula: y *= 1 - 0.28 * exp(-r*r*8)
  * and flattened bottom to nestle into a cream rosette.
  */
 export function createRealisticCherryGeometry(): THREE.BufferGeometry {
@@ -218,14 +273,14 @@ export function createRealisticCherryGeometry(): THREE.BufferGeometry {
 
     // Stem cavity indentation at top pole
     if (y > 0) {
-      y *= 1 - 0.28 * Math.exp(-r * r * 14);
+      y *= 1 - 0.28 * Math.exp(-r * r * 8);
     }
     // Bottom flattening where it nestles into cream
-    if (y < -0.06) {
-      y *= 0.88;
+    if (y < -0.05) {
+      y *= 0.82;
     }
     // Heart-like plumpness
-    const plump = 1 + 0.06 * Math.sin(((y + 0.26) / 0.52) * Math.PI);
+    const plump = 1 + 0.08 * Math.sin(((y + 0.26) / 0.52) * Math.PI);
     x *= plump;
     z *= plump;
 
@@ -239,7 +294,7 @@ export function createRealisticCherryGeometry(): THREE.BufferGeometry {
 
 // 1. Realistic Glossy Cherry with Dew Droplets & Curved Stem (Slide 59)
 export function RealisticCherry({
-  position = [0, 0.75, 0],
+  position = [0, 0, 0],
 }: {
   position?: [number, number, number];
 }) {
@@ -248,18 +303,18 @@ export function RealisticCherry({
 
   const stemGeometry = useMemo(() => {
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 0.2, 0),
-      new THREE.Vector3(0.05, 0.42, 0.03),
-      new THREE.Vector3(0.12, 0.62, 0.01),
-      new THREE.Vector3(0.08, 0.78, -0.05),
+      new THREE.Vector3(0, 0.40, 0),
+      new THREE.Vector3(0.04, 0.62, 0.03),
+      new THREE.Vector3(0.11, 0.82, 0.01),
+      new THREE.Vector3(0.08, 0.98, -0.05),
     ]);
     return new THREE.TubeGeometry(curve, 24, 0.012, 8, false);
   }, []);
 
   return (
     <group position={position}>
-      {/* Fluted Cream Rosette Bed underneath cherry */}
-      <mesh geometry={rosetteGeometry} position={[0, -0.22, 0]} castShadow receiveShadow>
+      {/* Fluted Cream Rosette Bed underneath cherry resting directly on cake surface */}
+      <mesh geometry={rosetteGeometry} position={[0, 0, 0]} castShadow receiveShadow>
         <meshPhysicalMaterial
           color="#FFFDF5"
           roughness={0.28}
@@ -269,8 +324,8 @@ export function RealisticCherry({
         />
       </mesh>
 
-      {/* Anatomically Accurate Ruby Cherry Body */}
-      <mesh geometry={cherryGeometry} castShadow receiveShadow>
+      {/* Anatomically Accurate Ruby Cherry Body nestled into cream bed */}
+      <mesh geometry={cherryGeometry} position={[0, 0.22, 0]} castShadow receiveShadow>
         <meshPhysicalMaterial
           color="#E6194B"
           roughness={0.05}
@@ -284,8 +339,8 @@ export function RealisticCherry({
       </mesh>
 
       {/* Indented Stem Cavity Core */}
-      <mesh position={[0, 0.19, 0]}>
-        <torusGeometry args={[0.026, 0.013, 8, 16]} />
+      <mesh position={[0, 0.40, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.026, 0.012, 8, 16]} />
         <meshStandardMaterial color="#4A0010" roughness={0.7} />
       </mesh>
 
@@ -295,13 +350,13 @@ export function RealisticCherry({
       </mesh>
 
       {/* Stem Knob at Tip */}
-      <mesh position={[0.08, 0.78, -0.05]} castShadow>
+      <mesh position={[0.08, 0.98, -0.05]} castShadow>
         <sphereGeometry args={[0.022, 12, 12]} />
         <meshStandardMaterial color="#405900" roughness={0.4} />
       </mesh>
 
       {/* Water Droplets */}
-      <mesh position={[0.11, 0.1, 0.17]}>
+      <mesh position={[0.11, 0.32, 0.17]}>
         <sphereGeometry args={[0.03, 12, 12]} />
         <meshPhysicalMaterial
           color="#FFFFFF"
@@ -311,7 +366,7 @@ export function RealisticCherry({
           clearcoat={1.0}
         />
       </mesh>
-      <mesh position={[-0.13, 0.04, 0.15]}>
+      <mesh position={[-0.13, 0.26, 0.15]}>
         <sphereGeometry args={[0.022, 12, 12]} />
         <meshPhysicalMaterial
           color="#FFFFFF"
@@ -679,28 +734,86 @@ export function HautePipingPattern({
   y,
   color,
   scale = 1,
+  shapeType = "round",
 }: {
   style: PipingStyle;
   radius: number;
   y: number;
   color: string;
   scale?: number;
+  shapeType?: CakeShape;
 }) {
-  const count = style === "st-honore" ? 18 : style === "ruffle-ribbon" ? 36 : 28;
-  const lambethShellGeom = useMemo(() => createLambethShellGeometry(0.075), []);
+  const count = style === "st-honore" ? 20 : style === "ruffle-ribbon" ? 36 : 28;
+  const lambethShellGeom = useMemo(() => createLambethShellGeometry(0.075, 0.36), []);
   const rosetteGeom = useMemo(() => createFlutedRosetteGeometry(0.075, 8, 8), []);
 
   const beads = useMemo(() => {
     const arr = [];
+    if (shapeType === "heart") {
+      const shape = new THREE.Shape();
+      shape.moveTo(0.5, 0.5);
+      shape.bezierCurveTo(0.5, 0.5, 0.4, 0, 0, 0);
+      shape.bezierCurveTo(-0.6, -0.6, -0.6, 0.7, -0.6, 0.7);
+      shape.bezierCurveTo(-0.6, 1.1, -0.3, 1.54, 0.5, 1.9);
+      shape.bezierCurveTo(1.2, 1.54, 1.6, 1.1, 1.6, 0.7);
+      shape.bezierCurveTo(1.6, 0.7, 1.6, 0, 1.0, 0);
+      shape.bezierCurveTo(0.7, 0.5, 0.5, 0.5, 0.5, 0.5);
+
+      const pts = shape.getSpacedPoints(count);
+      for (let i = 0; i < count; i++) {
+        const p = pts[i];
+        const nextP = pts[(i + 1) % count];
+        const x = (p.x - 0.5) * 1.22;
+        const z = (p.y - 0.95) * 1.22;
+        const nextX = (nextP.x - 0.5) * 1.22;
+        const nextZ = (nextP.y - 0.95) * 1.22;
+        const dx = nextX - x;
+        const dz = nextZ - z;
+        const rotationY = Math.atan2(dx, dz);
+        arr.push({ x, z, rotationY });
+      }
+      return arr;
+    }
+
+    if (shapeType === "rectangle") {
+      const w = 1.45;
+      const h = 1.05;
+      const r = 0.22;
+      const shape = new THREE.Shape();
+      shape.moveTo(-w + r, -h);
+      shape.lineTo(w - r, -h);
+      shape.quadraticCurveTo(w, -h, w, -h + r);
+      shape.lineTo(w, h - r);
+      shape.quadraticCurveTo(w, h, w - r, h);
+      shape.lineTo(-w + r, h);
+      shape.quadraticCurveTo(-w, h, -w, h - r);
+      shape.lineTo(-w, -h + r);
+      shape.quadraticCurveTo(-w, -h, -w + r, -h);
+
+      const pts = shape.getSpacedPoints(count);
+      for (let i = 0; i < count; i++) {
+        const p = pts[i];
+        const nextP = pts[(i + 1) % count];
+        const x = p.x;
+        const z = p.y;
+        const dx = nextP.x - x;
+        const dz = nextP.y - z;
+        const rotationY = Math.atan2(dx, dz);
+        arr.push({ x, z, rotationY });
+      }
+      return arr;
+    }
+
+    // Default: Circular rim
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
       const rotationY = -angle + Math.PI / 2;
-      arr.push({ x, z, rotationY, angle });
+      arr.push({ x, z, rotationY });
     }
     return arr;
-  }, [radius, count]);
+  }, [radius, count, shapeType]);
 
   if (style === "minimal") return null;
 
@@ -1118,6 +1231,36 @@ export function FullCrossSectionCutaway({
           />
         </mesh>
       </group>
+
+      {/* Smart Pâtissier Guardrail: 4 Central Support Dowels Ø6mm + Center Cake Board */}
+      {(size >= 20 || shape === "two-tier") && (
+        <group>
+          {[
+            [0.52, -0.05, 0.52],
+            [-0.52, -0.05, 0.52],
+            [-0.52, -0.05, -0.52],
+            [0.52, -0.05, -0.52],
+          ].map((pos, idx) => (
+            <mesh key={`cutaway-dowel-${idx}`} position={pos as [number, number, number]} castShadow>
+              <cylinderGeometry args={[0.045, 0.045, 0.9, 16]} />
+              <meshStandardMaterial color="#D2A679" roughness={0.65} metalness={0.05} />
+            </mesh>
+          ))}
+          {/* Internal Center Cake Board for Tier Stability */}
+          {shape === "two-tier" && (
+            <mesh position={[0, 0.05, 0]}>
+              <cylinderGeometry args={[1.05, 1.05, 0.025, 32, 1, false, 0, Math.PI * 1.5]} />
+              <meshStandardMaterial color="#E0D7C6" roughness={0.4} />
+            </mesh>
+          )}
+          {/* Engineering Callout for Dowels */}
+          <Html position={[0.65, 0.0, 0.65]} center>
+            <div className="bg-amber-900/95 backdrop-blur-md text-amber-100 px-2.5 py-1 rounded-lg border border-amber-400 shadow-md text-[9px] font-bold whitespace-nowrap animate-pulse">
+              🛡️ 4x Trụ Dowel Gỗ Ø6mm + Đế Lót (Gia Cố Kết Cấu)
+            </div>
+          </Html>
+        </group>
+      )}
 
       {/* Engineering Callouts */}
       <Html position={[1.65, 0.42, 0]} center>

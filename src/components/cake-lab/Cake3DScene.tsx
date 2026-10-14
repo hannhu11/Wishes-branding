@@ -30,6 +30,7 @@ import {
   createFrostingBumpMap,
   createCrumbBumpMap,
   ViscousDripRim,
+  createArtisanalCakeGeometry,
 } from "./PastryGeometries";
 import {
   strokeTo3DCurve,
@@ -73,6 +74,9 @@ export default function Cake3DScene({
   const cakeGroupRef = useRef<THREE.Group>(null);
   const heartGeometry = useWonkyHeartGeometry();
   const rectangleGeometry = useBaroqueRectangleGeometry();
+  const roundArtisanalGeom = useMemo(() => createArtisanalCakeGeometry(1.5, 1.0, 0.045), []);
+  const tier1ArtisanalGeom = useMemo(() => createArtisanalCakeGeometry(1.7, 0.7, 0.04), []);
+  const tier2ArtisanalGeom = useMemo(() => createArtisanalCakeGeometry(1.05, 0.65, 0.04), []);
 
   // Procedural Textures generated in-memory (Material Truth)
   const frostingBumpMap = useMemo(() => createFrostingBumpMap(), []);
@@ -134,26 +138,26 @@ export default function Cake3DScene({
     };
   }, [finish, frostingColor, frostingBumpMap, crumbBumpMap]);
 
-  // Determine top surface plane height and radius dynamically for any shape
+  // Determine top surface plane height and radius dynamically for any shape with exact precision
   const { surfaceY, surfaceRadius } = useMemo(() => {
     switch (shape) {
       case "two-tier":
         return { surfaceY: 0.785, surfaceRadius: 0.95 };
       case "heart":
-        return { surfaceY: 0.49, surfaceRadius: 1.15 };
+        return { surfaceY: 0.755, surfaceRadius: 1.15 };
       case "rectangle":
-        return { surfaceY: 0.49, surfaceRadius: 1.25 };
+        return { surfaceY: 0.58, surfaceRadius: 1.25 };
       case "cinnamon-roll":
-        return { surfaceY: 0.35, surfaceRadius: 0.95 };
+        return { surfaceY: 0.365, surfaceRadius: 0.95 };
       case "croissant":
-        return { surfaceY: 0.42, surfaceRadius: 0.85 };
+        return { surfaceY: 0.48, surfaceRadius: 0.85 };
       case "egg-tart":
         return { surfaceY: 0.35, surfaceRadius: 0.95 };
       case "cookie":
-        return { surfaceY: 0.22, surfaceRadius: 1.1 };
+        return { surfaceY: 0.12, surfaceRadius: 1.1 };
       case "round":
       default:
-        return { surfaceY: 0.515, surfaceRadius: 1.38 };
+        return { surfaceY: 0.505, surfaceRadius: 1.38 };
     }
   }, [shape]);
 
@@ -249,9 +253,8 @@ export default function Cake3DScene({
       {/* 1. Main Pastry Body Geometries */}
       {shape === "round" && (
         <group>
-          {/* Main Cylinder Body */}
-          <mesh position={[0, 0, 0]} castShadow receiveShadow>
-            <cylinderGeometry args={[1.5, 1.5, 1.0, 64]} />
+          {/* Artisanal Cake Body with Soft Palette-Knife Beveled Rims */}
+          <mesh geometry={roundArtisanalGeom} position={[0, 0, 0]} castShadow receiveShadow>
             <meshPhysicalMaterial color={frostingColor} {...materialProps} />
           </mesh>
 
@@ -260,21 +263,23 @@ export default function Cake3DScene({
             <ViscousDripRim radius={1.49} y={0.5} color={frostingColor} />
           )}
 
-          {/* Top Piping Ring */}
+          {/* Top Piping Ring on Upper Softened Rim */}
           <HautePipingPattern
             style={pipingStyle}
             radius={1.46}
-            y={0.52}
+            y={0.50}
             color={pipingColor}
+            shapeType="round"
           />
 
           {/* Bottom Rim Piping Ring */}
           <HautePipingPattern
             style={pipingStyle}
             radius={1.52}
-            y={-0.48}
+            y={-0.50}
             color={pipingColor}
             scale={1.06}
+            shapeType="round"
           />
 
           {/* Mid-body Garland Shells */}
@@ -285,12 +290,13 @@ export default function Cake3DScene({
               y={0.0}
               color={frostingColor}
               scale={0.88}
+              shapeType="round"
             />
           )}
 
           {/* Top Calligraphy Canvas Disc */}
           {canvasTexture && (
-            <mesh position={[0, surfaceY - 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <circleGeometry args={[surfaceRadius, 48]} />
               <meshBasicMaterial map={canvasTexture} transparent depthWrite={false} />
             </mesh>
@@ -305,17 +311,23 @@ export default function Cake3DScene({
             <meshPhysicalMaterial color={frostingColor} {...materialProps} />
           </mesh>
 
-          {/* Heart Top Accent Piping */}
+          {/* Heart Top Accent Piping tracing Wonky Heart Contour */}
           <HautePipingPattern
             style={pipingStyle}
             radius={1.25}
-            y={0.48}
+            y={surfaceY}
             color={pipingColor}
+            shapeType="heart"
           />
+
+          {/* Procedural Viscous Drips when Mirror Glaze finish */}
+          {finish === "mirror-glaze" && (
+            <ViscousDripRim radius={1.22} y={surfaceY} color={frostingColor} count={22} />
+          )}
 
           {/* Top Calligraphy Canvas Disc */}
           {canvasTexture && (
-            <mesh position={[0, surfaceY - 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <circleGeometry args={[surfaceRadius, 32]} />
               <meshBasicMaterial map={canvasTexture} transparent depthWrite={false} />
             </mesh>
@@ -330,17 +342,18 @@ export default function Cake3DScene({
             <meshPhysicalMaterial color={frostingColor} {...materialProps} />
           </mesh>
 
-          {/* Rectangle Top Piping */}
+          {/* Rectangle Top Piping tracing Baroque Contour */}
           <HautePipingPattern
             style={pipingStyle}
             radius={1.35}
-            y={0.48}
+            y={surfaceY}
             color={pipingColor}
+            shapeType="rectangle"
           />
 
           {/* Top Calligraphy Canvas Disc */}
           {canvasTexture && (
-            <mesh position={[0, surfaceY - 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <planeGeometry args={[2.5, 1.8]} />
               <meshBasicMaterial map={canvasTexture} transparent depthWrite={false} />
             </mesh>
@@ -350,40 +363,46 @@ export default function Cake3DScene({
 
       {shape === "two-tier" && (
         <group>
-          {/* Base Tier 1 (20cm) */}
-          <mesh position={[0, -0.3, 0]} castShadow receiveShadow>
-            <cylinderGeometry args={[1.7, 1.7, 0.7, 64]} />
+          {/* Base Tier 1 (20cm) with Artisanal Rims */}
+          <mesh geometry={tier1ArtisanalGeom} position={[0, -0.3, 0]} castShadow receiveShadow>
             <meshPhysicalMaterial color={frostingColor} {...materialProps} />
           </mesh>
           <HautePipingPattern
             style={pipingStyle}
             radius={1.66}
-            y={0.06}
+            y={0.05}
             color={pipingColor}
+            shapeType="round"
           />
           <HautePipingPattern
             style={pipingStyle}
             radius={1.72}
-            y={-0.64}
+            y={-0.65}
             color={pipingColor}
             scale={1.05}
+            shapeType="round"
           />
 
-          {/* Top Tier 2 (12cm) */}
-          <mesh position={[0, 0.45, 0]} castShadow receiveShadow>
-            <cylinderGeometry args={[1.05, 1.05, 0.65, 64]} />
+          {/* Top Tier 2 (12cm) with Artisanal Rims */}
+          <mesh geometry={tier2ArtisanalGeom} position={[0, 0.45, 0]} castShadow receiveShadow>
             <meshPhysicalMaterial color={frostingColor} {...materialProps} />
           </mesh>
           <HautePipingPattern
             style={pipingStyle}
             radius={1.02}
-            y={0.78}
+            y={surfaceY}
             color={pipingColor}
+            shapeType="round"
           />
+
+          {/* Tier 2 Viscous Drip Rim when Mirror Glaze finish */}
+          {finish === "mirror-glaze" && (
+            <ViscousDripRim radius={1.04} y={surfaceY} color={frostingColor} count={20} />
+          )}
 
           {/* Top Calligraphy Canvas Disc on Tier 2 */}
           {canvasTexture && (
-            <mesh position={[0, surfaceY - 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <circleGeometry args={[surfaceRadius, 32]} />
               <meshBasicMaterial map={canvasTexture} transparent depthWrite={false} />
             </mesh>
@@ -396,7 +415,7 @@ export default function Cake3DScene({
         <group>
           <CinnamonRollMesh />
           {canvasTexture && (
-            <mesh position={[0, surfaceY - 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <circleGeometry args={[surfaceRadius, 32]} />
               <meshBasicMaterial map={canvasTexture} transparent depthWrite={false} />
             </mesh>
@@ -408,7 +427,7 @@ export default function Cake3DScene({
         <group>
           <FrenchCroissantMesh />
           {canvasTexture && (
-            <mesh position={[0, surfaceY - 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <circleGeometry args={[surfaceRadius, 24]} />
               <meshBasicMaterial map={canvasTexture} transparent depthWrite={false} />
             </mesh>
@@ -420,7 +439,7 @@ export default function Cake3DScene({
         <group>
           <CustardEggTartMesh />
           {canvasTexture && (
-            <mesh position={[0, surfaceY - 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <circleGeometry args={[surfaceRadius, 32]} />
               <meshBasicMaterial map={canvasTexture} transparent depthWrite={false} />
             </mesh>
@@ -432,7 +451,7 @@ export default function Cake3DScene({
         <group>
           <ArtisanalCookieMesh color={frostingColor} />
           {canvasTexture && (
-            <mesh position={[0, surfaceY - 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <circleGeometry args={[surfaceRadius, 32]} />
               <meshBasicMaterial map={canvasTexture} transparent depthWrite={false} />
             </mesh>
@@ -473,16 +492,16 @@ export default function Cake3DScene({
         </mesh>
       ))}
 
-      {/* 4. Toppings & Accessories for All Pastries */}
-      <group position={[0, shape === "two-tier" ? 0.3 : 0, 0]}>
-        {/* Cherry */}
+      {/* 4. Toppings & Accessories for All Pastries (Precision Resting on Top Surface) */}
+      <group position={[0, 0, 0]}>
+        {/* Cherry with fluted rosette bed */}
         {toppings.cherry && (
-          <RealisticCherry position={[0, surfaceY + 0.14, 0]} />
+          <RealisticCherry position={[0, surfaceY, 0]} />
         )}
 
         {/* Fresh Strawberry */}
         {toppings.strawberry && (
-          <RealisticStrawberry position={[0.45, surfaceY + 0.08, 0.35]} />
+          <RealisticStrawberry position={[0.45, surfaceY + 0.01, 0.35]} />
         )}
 
         {/* Pastel Sugar Pearls Sprinkles */}
@@ -497,17 +516,17 @@ export default function Cake3DScene({
 
         {/* Pastel Spiral Candle */}
         {toppings.spiralCandle && (
-          <PastelSpiralCandle position={[-0.45, surfaceY + 0.02, -0.35]} />
+          <PastelSpiralCandle position={[-0.45, surfaceY + 0.01, -0.35]} />
         )}
 
         {/* Birthday Crown (Slide 85) */}
         {toppings.crown && (
-          <BirthdayCrown position={[0, surfaceY + 0.1, 0]} />
+          <BirthdayCrown position={[0, surfaceY + 0.01, 0]} />
         )}
 
         {/* Enamel Pin Badge (Slide 83) */}
         {toppings.enamelPin && (
-          <EnamelBadgePin position={[0.65, surfaceY + 0.03, 0.45]} />
+          <EnamelBadgePin position={[0.65, surfaceY + 0.01, 0.45]} />
         )}
       </group>
     </group>

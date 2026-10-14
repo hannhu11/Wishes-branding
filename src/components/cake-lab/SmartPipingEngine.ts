@@ -91,7 +91,10 @@ export function strokeTo3DCurve(
     // Map to [-radius * 0.75, radius * 0.75]
     const x3d = (pt.x - 0.5) * (radius * 1.5);
     const z3d = (pt.y - 0.5) * (radius * 1.5);
-    vectors.push(new THREE.Vector3(x3d, yPos, z3d));
+    const vec = new THREE.Vector3(x3d, yPos, z3d);
+    if (vectors.length === 0 || vec.distanceTo(vectors[vectors.length - 1]) > 0.005) {
+      vectors.push(vec);
+    }
   }
 
   if (vectors.length < 2) return null;
