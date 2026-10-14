@@ -316,19 +316,42 @@ export default function Cake3DScene({
   const computeAccessoryPositions = (
     item: AccessoryItem
   ): [number, number, number][] => {
-    if (item.customPositions && item.customPositions.length > 0) {
-      return item.customPositions;
-    }
-
-    const positions: [number, number, number][] = [];
     const count = item.count;
     const r = surfaceRadius * 0.78;
 
-    if (item.layout === "center" || count === 1) {
-      if (item.type === "enamel-pin") {
-        // Enamel pin always mounted on front vertical wall / cake board ribbon
+    if (item.customPositions && item.customPositions.length > 0) {
+      if (item.customPositions.length >= item.count) {
+        return item.customPositions.slice(0, item.count);
+      }
+      const filled = [...item.customPositions];
+      for (let i = filled.length; i < item.count; i++) {
+        const a = (i / item.count) * Math.PI * 2;
+        filled.push([Math.cos(a) * r * 0.5, surfaceY, Math.sin(a) * r * 0.5]);
+      }
+      return filled;
+    }
+
+    const positions: [number, number, number][] = [];
+
+    // Enamel pin always mounted on front vertical wall / cake board ribbon
+    if (item.type === "enamel-pin") {
+      if (count === 1) {
         return [[0, surfaceY - 0.35, surfaceRadius + 0.05]];
       }
+      const arcSpan = Math.PI * 0.35;
+      const startA = Math.PI * 0.5 - arcSpan / 2;
+      for (let i = 0; i < count; i++) {
+        const a = startA + (i / (count - 1)) * arcSpan;
+        positions.push([
+          Math.cos(a) * (surfaceRadius + 0.05),
+          surfaceY - 0.35,
+          Math.sin(a) * (surfaceRadius + 0.05),
+        ]);
+      }
+      return positions;
+    }
+
+    if (item.layout === "center") {
       if (hasCenterTextOrPiping) {
         // Avoid center collision: place at top crest
         return [[0, surfaceY, -surfaceRadius * 0.65]];
@@ -472,6 +495,21 @@ export default function Cake3DScene({
             shapeType="heart"
           />
 
+          {(pipingPosition === "dual-rim" || pipingPosition === "full-lambeth-swag") && (
+            <HautePipingPattern
+              style={pipingStyle}
+              radius={1.28}
+              y={-0.45}
+              color={pipingColor}
+              scale={1.03}
+              shapeType="heart"
+            />
+          )}
+
+          {pipingPosition === "full-lambeth-swag" && (
+            <LambethSideSwags radius={1.25} topY={surfaceY - 0.05} color={pipingColor} shapeType="heart" />
+          )}
+
           {finish === "mirror-glaze" && (
             <ViscousDripRim radius={1.22} y={surfaceY} color={frostingColor} count={22} />
           )}
@@ -498,6 +536,21 @@ export default function Cake3DScene({
             color={pipingColor}
             shapeType="rectangle"
           />
+
+          {(pipingPosition === "dual-rim" || pipingPosition === "full-lambeth-swag") && (
+            <HautePipingPattern
+              style={pipingStyle}
+              radius={1.38}
+              y={-0.45}
+              color={pipingColor}
+              scale={1.03}
+              shapeType="rectangle"
+            />
+          )}
+
+          {pipingPosition === "full-lambeth-swag" && (
+            <LambethSideSwags radius={1.35} topY={surfaceY - 0.05} color={pipingColor} shapeType="rectangle" />
+          )}
 
           {canvasTexture && (
             <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>

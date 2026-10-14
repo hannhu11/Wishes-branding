@@ -378,7 +378,10 @@ export function strokeTo3DCurve(
 ): THREE.CatmullRomCurve3 | null {
   if (stroke.points.length < 2) return null;
 
-  const smoothed = chaikinSmooth(stroke.points, 2);
+  const smoothed =
+    stroke.points.length >= 3
+      ? catmullRomResample(stroke.points, Math.max(36, stroke.points.length * 4))
+      : chaikinSmooth(stroke.points, 2);
   const vectors: THREE.Vector3[] = [];
 
   for (const pt of smoothed) {
@@ -498,8 +501,8 @@ export function renderPipingToCanvas(
     const textAlign = typography?.align || "center";
     const textCurve = typography?.curve || "straight";
     const activeTextColor = typography?.color || textColor;
-    const offsetX = ((typography?.offsetX || 0) / 100) * (width * 0.4);
-    const offsetY = ((typography?.offsetY || 0) / 100) * (height * 0.4);
+    const offsetX = ((typography?.offsetX || 0) / 100) * (width * 0.72);
+    const offsetY = ((typography?.offsetY || 0) / 100) * (height * 0.72);
 
     const centerX = width / 2 + offsetX;
     const centerY = height / 2 + offsetY;
@@ -563,22 +566,37 @@ export function renderPipingToCanvas(
       const currentY = centerY + lineYOffset;
 
       if (textCurve === "arc-top" || textCurve === "arc-bottom") {
-        // Render characters along circular arc
-        const arcRadius = 140;
+        // Mathematical circular arc curve
+        const arcRadius = 145;
         const isBottom = textCurve === "arc-bottom";
         const totalChars = line.length;
-        const totalAngle = Math.min(Math.PI * 0.9, totalChars * 0.16);
-        const startAngle = (isBottom ? Math.PI / 2 : -Math.PI / 2) - totalAngle / 2;
+        if (totalChars === 0) return;
+        const totalAngle = Math.min(Math.PI * 0.75, Math.max(0.18, (totalChars - 1) * 0.11));
+        const halfAngle = totalAngle / 2;
 
         for (let i = 0; i < totalChars; i++) {
           const char = line[i];
-          const charAngle = startAngle + (i / Math.max(1, totalChars - 1)) * totalAngle;
-          const charX = centerX + Math.cos(charAngle) * arcRadius;
-          const charY = centerY + (isBottom ? -arcRadius * 0.6 : arcRadius * 0.6) + Math.sin(charAngle) * arcRadius;
+          const alpha = totalChars > 1 ? -halfAngle + (i / (totalChars - 1)) * totalAngle : 0;
+
+          let charX: number;
+          let charY: number;
+          let rotAngle: number;
+
+          if (isBottom) {
+            // Smile curve (U-shape): Center of circle is above the text
+            charX = centerX + Math.sin(alpha) * arcRadius;
+            charY = currentY - (arcRadius - Math.cos(alpha) * arcRadius);
+            rotAngle = alpha;
+          } else {
+            // Rainbow curve (Arch-shape): Center of circle is below the text
+            charX = centerX + Math.sin(alpha) * arcRadius;
+            charY = currentY + (arcRadius - Math.cos(alpha) * arcRadius);
+            rotAngle = -alpha;
+          }
 
           ctx.save();
           ctx.translate(charX, charY);
-          ctx.rotate(charAngle + (isBottom ? -Math.PI / 2 : Math.PI / 2));
+          ctx.rotate(rotAngle);
 
           // 3D Embossed Relief Multi-Pass
           // Pass 1: Drop Shadow
@@ -655,19 +673,20 @@ export function createTaperedFlutedTubeGeometry(
   curve: THREE.CatmullRomCurve3,
   baseRadius: number = 0.035,
   points: number = 8,
-  tubularSegments: number = 40
+  tubularSegments: number = 64
 ): THREE.BufferGeometry {
   const geom = new THREE.BufferGeometry();
   const numVerticesPerRing = points * 2;
+  const actualSegments = Math.max(tubularSegments, curve.points.length * 6);
 
   // Compute Frenet frames for the curve
-  const frames = curve.computeFrenetFrames(tubularSegments, false);
+  const frames = curve.computeFrenetFrames(actualSegments, false);
   const positions: number[] = [];
   const uvs: number[] = [];
   const indices: number[] = [];
 
-  for (let i = 0; i <= tubularSegments; i++) {
-    const t = i / tubularSegments;
+  for (let i = 0; i <= actualSegments; i++) {
+    const t = i / actualSegments;
     const point = curve.getPointAt(t);
     const normal = frames.normals[i];
     const binormal = frames.binormals[i];
@@ -694,7 +713,7 @@ export function createTaperedFlutedTubeGeometry(
     }
   }
 
-  for (let i = 0; i < tubularSegments; i++) {
+  for (let i = 0; i < actualSegments; i++) {
     for (let j = 0; j < numVerticesPerRing; j++) {
       const current = i * numVerticesPerRing + j;
       const next = i * numVerticesPerRing + ((j + 1) % numVerticesPerRing);
@@ -721,7 +740,7 @@ export function createTaperedFlutedTubeGeometry(
   const endPt = curve.getPointAt(1);
   positions.push(endPt.x, endPt.y, endPt.z);
   uvs.push(0.5, 1);
-  const lastRingOffset = tubularSegments * numVerticesPerRing;
+  const lastRingOffset = actualSegments * numVerticesPerRing;
   for (let j = 0; j < numVerticesPerRing; j++) {
     const nextJ = (j + 1) % numVerticesPerRing;
     indices.push(endCenterIdx, lastRingOffset + j, lastRingOffset + nextJ);

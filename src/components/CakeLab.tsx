@@ -597,6 +597,23 @@ export default function CakeLab() {
     setAccessories((prev) => prev.filter((a) => a.id !== id));
   };
 
+  const handleCakeSurfaceClick = (point: [number, number, number]) => {
+    const targetItem = accessories.find((a) => a.layout === "custom");
+    if (!targetItem) return;
+
+    setAccessories((prev) =>
+      prev.map((a) => {
+        if (a.id !== targetItem.id) return a;
+        const currentPositions = a.customPositions ? [...a.customPositions] : [];
+        if (currentPositions.length >= a.count) {
+          return { ...a, customPositions: [point] };
+        } else {
+          return { ...a, customPositions: [...currentPositions, point] };
+        }
+      })
+    );
+  };
+
   const currentPantone =
     FROSTING_PALETTE.find((f) => f.hex === frostingColor)?.pantone || "Pantone 189 C";
 
@@ -817,6 +834,7 @@ export default function CakeLab() {
                   drawingState={drawingState}
                   typography={typography}
                   activeStep={activeStep}
+                  onCakeClick={handleCakeSurfaceClick}
                 />
 
                 <CameraRig
@@ -1621,28 +1639,52 @@ export default function CakeLab() {
                             </div>
 
                             {/* Layout Selector */}
-                            <div className="flex items-center justify-between text-[11px]">
-                              <span className="text-stone-600">Bố cục:</span>
-                              <div className="flex gap-1">
-                                {[
-                                  { id: "center" as const, label: "Tâm" },
-                                  { id: "ring" as const, label: "Vòng Viền" },
-                                  { id: "corners" as const, label: "4 Góc" },
-                                  { id: "front-arc" as const, label: "Cung Trước" },
-                                ].map((l) => (
-                                  <button
-                                    key={l.id}
-                                    onClick={() => updateAccessoryLayout(item.id, l.id)}
-                                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                                      item.layout === l.id
-                                        ? "bg-wishes-cherry text-white"
-                                        : "bg-stone-100 text-stone-600 hover:bg-stone-200"
-                                    }`}
-                                  >
-                                    {l.label}
-                                  </button>
-                                ))}
+                            <div className="flex flex-col gap-1.5 text-[11px]">
+                              <div className="flex items-center justify-between">
+                                <span className="text-stone-600">Bố cục:</span>
+                                <div className="flex flex-wrap gap-1 justify-end">
+                                  {[
+                                    { id: "center" as const, label: "Tâm" },
+                                    { id: "ring" as const, label: "Vòng" },
+                                    { id: "corners" as const, label: "4 Góc" },
+                                    { id: "front-arc" as const, label: "Cung Trước" },
+                                    { id: "scatter" as const, label: "Rải Tự Nhiên" },
+                                    { id: "custom" as const, label: "Chạm 3D 🎯" },
+                                  ].map((l) => (
+                                    <button
+                                      key={l.id}
+                                      onClick={() => updateAccessoryLayout(item.id, l.id)}
+                                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                        item.layout === l.id
+                                          ? "bg-wishes-cherry text-white"
+                                          : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                                      }`}
+                                    >
+                                      {l.label}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
+
+                              {item.layout === "custom" && (
+                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 text-[10px] text-amber-900 flex items-center justify-between animate-pulse">
+                                  <span>
+                                    🎯 Chạm trực tiếp mặt bánh 3D để ghim vị trí ({item.customPositions?.length || 0} / {item.count} điểm)
+                                  </span>
+                                  {item.customPositions && item.customPositions.length > 0 && (
+                                    <button
+                                      onClick={() =>
+                                        setAccessories((prev) =>
+                                          prev.map((a) => (a.id === item.id ? { ...a, customPositions: [] } : a))
+                                        )
+                                      }
+                                      className="text-[9px] underline font-bold text-amber-700 hover:text-amber-900 ml-2"
+                                    >
+                                      Đặt lại
+                                    </button>
+                                  )}
+                                </div>
+                              )}
                             </div>
 
                             {/* Scale Selector */}
@@ -1932,6 +1974,7 @@ export default function CakeLab() {
                     cakeSize={size}
                     cakeShape={shape}
                     accessories={accessories}
+                    typography={typography}
                   />
                 )}
 
@@ -2212,6 +2255,7 @@ export default function CakeLab() {
         handwrittenText={typography.text || drawingState.customText || drawingState.presetText}
         aestheticScore={98}
         estimatedPrice={bill.formattedGrandTotal}
+        lineItems={bill.lineItems}
       />
     </section>
   );

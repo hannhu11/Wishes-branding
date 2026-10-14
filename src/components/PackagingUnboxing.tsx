@@ -46,15 +46,54 @@ function HouseBox3DMesh({
     boxGroupRef.current.position.y = Math.sin(t * 1.0) * 0.03;
   });
 
+  const gableShape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.moveTo(-1.0, 0);
+    s.lineTo(1.0, 0);
+    s.lineTo(0, 0.7);
+    s.closePath();
+    return s;
+  }, []);
+
+  const gableGeom = useMemo(() => {
+    return new THREE.ExtrudeGeometry(gableShape, {
+      depth: 0.04,
+      bevelEnabled: false,
+    });
+  }, [gableShape]);
+
   return (
     <group ref={boxGroupRef} position={[0, -0.3, 0]}>
-      {/* 1. MAIN BOX LOWER BASE (Thân hộp hình vuông) */}
-      <mesh position={[0, -0.3, 0]} castShadow receiveShadow>
-        <boxGeometry args={[2.0, 1.2, 2.0]} />
-        <meshStandardMaterial color="#FFAEC9" roughness={0.35} metalness={0.05} />
-      </mesh>
+      {/* 1. MAIN BOX LOWER BASE (Hộp quà rỗng mở nắp cao cấp) */}
+      <group>
+        {/* Đáy hộp */}
+        <mesh position={[0, -0.88, 0]} castShadow receiveShadow>
+          <boxGeometry args={[2.0, 0.04, 2.0]} />
+          <meshStandardMaterial color="#FFAEC9" roughness={0.35} metalness={0.05} />
+        </mesh>
+        {/* Thành trước */}
+        <mesh position={[0, -0.3, 0.98]} castShadow receiveShadow>
+          <boxGeometry args={[2.0, 1.2, 0.04]} />
+          <meshStandardMaterial color="#FFAEC9" roughness={0.35} metalness={0.05} />
+        </mesh>
+        {/* Thành sau */}
+        <mesh position={[0, -0.3, -0.98]} castShadow receiveShadow>
+          <boxGeometry args={[2.0, 1.2, 0.04]} />
+          <meshStandardMaterial color="#FFAEC9" roughness={0.35} metalness={0.05} />
+        </mesh>
+        {/* Thành trái */}
+        <mesh position={[-0.98, -0.3, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.04, 1.2, 1.96]} />
+          <meshStandardMaterial color="#FFAEC9" roughness={0.35} metalness={0.05} />
+        </mesh>
+        {/* Thành phải */}
+        <mesh position={[0.98, -0.3, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.04, 1.2, 1.96]} />
+          <meshStandardMaterial color="#FFAEC9" roughness={0.35} metalness={0.05} />
+        </mesh>
+      </group>
 
-      {/* Boutique Awning Stripes on Box Sides */}
+      {/* Boutique Awning Stripes on Box Front */}
       <mesh position={[0, -0.3, 1.01]}>
         <planeGeometry args={[1.8, 0.9]} />
         <meshBasicMaterial color="#FFFFFF" opacity={0.3} transparent />
@@ -160,8 +199,7 @@ function HouseBox3DMesh({
       {/* 5. GABLE TRIANGULAR WALLS (Attached solidly to front and back house walls) */}
       <group position={[0, 0.3, 0]}>
         {/* Front Gable Wall with boutique Heart Window */}
-        <mesh position={[0, 0.35, 0.99]} castShadow receiveShadow>
-          <cylinderGeometry args={[0, 1.414, 0.7, 4, 1, false, Math.PI / 4]} />
+        <mesh geometry={gableGeom} position={[0, 0, 0.96]} castShadow receiveShadow>
           <meshStandardMaterial color="#FFAEC9" roughness={0.35} />
         </mesh>
         {/* Gold Foil Heart Emblem on Front Gable */}
@@ -171,8 +209,7 @@ function HouseBox3DMesh({
         </mesh>
 
         {/* Back Gable Wall */}
-        <mesh position={[0, 0.35, -0.99]} castShadow receiveShadow>
-          <cylinderGeometry args={[0, 1.414, 0.7, 4, 1, false, Math.PI / 4]} />
+        <mesh geometry={gableGeom} position={[0, 0, -1.0]} castShadow receiveShadow>
           <meshStandardMaterial color="#FFAEC9" roughness={0.35} />
         </mesh>
       </group>

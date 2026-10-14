@@ -36,6 +36,14 @@ import {
   FONT_OPTIONS,
 } from "./types";
 
+interface BlueprintLineItem {
+  id: string;
+  name: string;
+  count: number;
+  totalPrice: number;
+  unitPrice: number;
+}
+
 interface BlueprintModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -57,6 +65,7 @@ interface BlueprintModalProps {
   handwrittenText?: string;
   aestheticScore: number;
   estimatedPrice?: string;
+  lineItems?: BlueprintLineItem[];
 }
 
 export default function BakingBlueprintModal({
@@ -80,6 +89,7 @@ export default function BakingBlueprintModal({
   handwrittenText,
   aestheticScore,
   estimatedPrice,
+  lineItems = [],
 }: BlueprintModalProps) {
   if (!isOpen) return null;
 
@@ -144,10 +154,10 @@ export default function BakingBlueprintModal({
       ? "Mèo Y2K Đeo Kính (Y2K Kitty Glasses Cake - Slide 58)"
       : shape === "puppy-bow"
       ? "Cún Puppy Nơ Xanh (Harajuku Ribbon Puppy - Slide 59)"
-      : shape === "cookie"
-      ? "Bánh Quy Gấu Mềm (Artisanal Cookie Bear - Slide 42/62)"
-      : shape === "croissant"
-      ? "Croissant Bơ Pháp Cột Nơ (French Butter Croissant - Slide 45/64)"
+      : shape === "cookie" || shape === "cookie-bear"
+      ? "Bánh Quy Gấu Mềm Đắp Chăn (Artisanal Cookie Bear - Slide 42/62)"
+      : shape === "croissant" || shape === "croissant-bow"
+      ? "Croissant Bơ Pháp Thắt Nơ Lụa (French Butter Croissant - Slide 45/64)"
       : shape === "cinnamon-roll"
       ? "Cinnamon Roll Quế Chảy (Signature Cinnamon Glaze - Slide 40/61)"
       : shape === "egg-tart"
@@ -303,6 +313,34 @@ export default function BakingBlueprintModal({
             </div>
           </div>
         </div>
+
+        {/* 5. Itemized Production Bill Table */}
+        {lineItems && lineItems.length > 0 && (
+          <div className="mb-6 p-4 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-2 text-xs">
+            <div className="font-bold text-amber-950 flex items-center justify-between pb-1.5 border-b border-amber-200">
+              <span className="flex items-center gap-1.5">
+                <span>📋</span>
+                <span>5. DỰ TOÁN CHI TIẾT & BẢNG KÊ NGUYÊN LIỆU (ITEMIZED PRODUCTION BILL)</span>
+              </span>
+              <span className="font-mono text-wishes-cherry font-black text-sm">
+                {estimatedPrice}
+              </span>
+            </div>
+            <div className="divide-y divide-amber-100">
+              {lineItems.map((item) => (
+                <div key={item.id} className="py-1 flex justify-between items-center text-[11px]">
+                  <span className="text-stone-700">
+                    {item.count > 1 ? `${item.count}× ` : ""}
+                    {item.name}
+                  </span>
+                  <span className="font-mono font-bold text-stone-900">
+                    {item.totalPrice.toLocaleString("vi-VN")}đ
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-wishes-chocolate/15">

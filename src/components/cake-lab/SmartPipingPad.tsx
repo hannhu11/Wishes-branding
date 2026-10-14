@@ -11,7 +11,7 @@ import {
   Heart,
   Smile,
 } from "lucide-react";
-import { DrawPoint, DrawStroke, SmartDrawingState, CakeShape, AccessoryItem } from "./types";
+import { DrawPoint, DrawStroke, SmartDrawingState, CakeShape, AccessoryItem, TypographyState } from "./types";
 import {
   renderPipingToCanvas,
   filterMinDistance,
@@ -26,6 +26,7 @@ interface SmartPipingPadProps {
   cakeSize?: number;
   cakeShape?: CakeShape;
   accessories?: AccessoryItem[];
+  typography?: TypographyState;
 }
 
 const PIPING_COLORS = [
@@ -44,6 +45,7 @@ export default function SmartPipingPad({
   cakeSize = 16,
   cakeShape = "round",
   accessories = [],
+  typography,
 }: SmartPipingPadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fullscreenCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -91,7 +93,8 @@ export default function SmartPipingPad({
         drawingState.strokes,
         drawingState.customText || drawingState.presetText,
         drawingState.textColor,
-        true
+        true,
+        typography
       );
     };
 
@@ -99,7 +102,7 @@ export default function SmartPipingPad({
     if (isFullscreen) {
       redraw(fullscreenCanvasRef.current);
     }
-  }, [drawingState, isFullscreen]);
+  }, [drawingState, isFullscreen, typography]);
 
   // Coordinate normalizer relative to canvas [0, 1]
   const getCanvasCoords = (
@@ -276,8 +279,14 @@ export default function SmartPipingPad({
     const activeRef = isModal ? fullscreenCanvasRef : canvasRef;
     return (
       <div
-        className={`relative mx-auto rounded-3xl overflow-hidden border-2 border-dashed border-wishes-cherry/40 shadow-inner bg-gradient-to-b from-white/95 to-wishes-pink/15 flex items-center justify-center touch-none select-none ${
-          isModal ? "w-full max-w-[500px] aspect-square" : "w-full max-w-[380px] aspect-square"
+        className={`relative mx-auto rounded-3xl overflow-hidden border-2 border-dashed border-wishes-cherry/40 shadow-inner bg-gradient-to-b from-white/95 to-wishes-pink/15 flex items-center justify-center touch-none select-none transition-all ${
+          isModal
+            ? isRect
+              ? "w-full max-w-[520px] aspect-[4/3]"
+              : "w-full max-w-[500px] aspect-square"
+            : isRect
+            ? "w-full max-w-[440px] aspect-[4/3]"
+            : "w-full max-w-[380px] aspect-square"
         }`}
       >
         {/* Silhouette Backdrop Preview */}
@@ -300,25 +309,68 @@ export default function SmartPipingPad({
         </div>
 
         {/* Faint Accessories Preview */}
-        {accessories.map((acc, i) => (
-          <div
-            key={i}
-            className="absolute z-0 pointer-events-none opacity-40 text-sm select-none"
-            style={{
-              left: `${50 + (i % 2 === 0 ? -30 : 30)}%`,
-              top: `${50 + (i > 1 ? 30 : -30)}%`,
-              transform: "translate(-50%, -50%)",
-            }}
-          >
-            {acc.type === "cherry"
+        {accessories.map((acc, i) => {
+          const icon =
+            acc.type === "cherry"
               ? "🍒"
+              : acc.type === "strawberry"
+              ? "🍓"
+              : acc.type === "blueberry-cluster"
+              ? "🫐"
               : acc.type === "satin-bow"
               ? "🎀"
               : acc.type === "crown"
               ? "👑"
-              : "✨"}
-          </div>
-        ))}
+              : acc.type === "spiral-candle"
+              ? "🕯️"
+              : acc.type === "chocolate-bear"
+              ? "🧸"
+              : acc.type === "macaron"
+              ? "🍪"
+              : "✨";
+
+          let leftPct = 50;
+          let topPct = 50;
+
+          if (acc.layout === "center") {
+            leftPct = 50;
+            topPct = 50;
+          } else if (acc.layout === "corners") {
+            const corners = [
+              [24, 24],
+              [76, 24],
+              [24, 76],
+              [76, 76],
+            ];
+            const c = corners[i % 4];
+            leftPct = c[0];
+            topPct = c[1];
+          } else if (acc.layout === "front-arc") {
+            leftPct = 50 + (i % 2 === 0 ? -1 : 1) * 22;
+            topPct = 76;
+          } else if (acc.layout === "ring") {
+            const angle = (i / Math.max(1, accessories.length)) * Math.PI * 2;
+            leftPct = 50 + Math.cos(angle) * 35;
+            topPct = 50 + Math.sin(angle) * 35;
+          } else {
+            leftPct = 30 + ((i * 37) % 40);
+            topPct = 30 + ((i * 47) % 40);
+          }
+
+          return (
+            <div
+              key={acc.id || i}
+              className="absolute z-0 pointer-events-none opacity-45 text-base select-none transition-all"
+              style={{
+                left: `${leftPct}%`,
+                top: `${topPct}%`,
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              {icon}
+            </div>
+          );
+        })}
 
         <canvas
           ref={activeRef}

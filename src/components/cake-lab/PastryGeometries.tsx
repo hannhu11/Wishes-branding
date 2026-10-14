@@ -152,7 +152,7 @@ export function createArtisanalCakeGeometry(
  */
 export function createLambethShellGeometry(
   baseRadius: number = 0.055,
-  length: number = 0.28
+  length: number = 0.38
 ): THREE.BufferGeometry {
   const geom = new THREE.BufferGeometry();
   const segments = 16;
@@ -546,7 +546,11 @@ export function InstancedPastelSprinkles({
   y?: number;
   count?: number;
 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const pearlsRef = useRef<THREE.InstancedMesh>(null);
+  const rodsRef = useRef<THREE.InstancedMesh>(null);
+  const pearlsCount = Math.floor(count * 0.55);
+  const rodsCount = count - pearlsCount;
+
   const colors = useMemo(
     () => [
       new THREE.Color("#FF3366"),
@@ -561,36 +565,58 @@ export function InstancedPastelSprinkles({
   );
 
   useEffect(() => {
-    if (!meshRef.current) return;
     const dummy = new THREE.Object3D();
 
-    for (let i = 0; i < count; i++) {
-      const r = (0.55 + Math.sqrt(i / count) * 0.42) * radius;
-      const theta = i * 2.39996;
-      const x = Math.cos(theta) * r;
-      const z = Math.sin(theta) * r;
+    if (pearlsRef.current) {
+      for (let i = 0; i < pearlsCount; i++) {
+        const r = (0.35 + Math.sqrt(i / pearlsCount) * 0.58) * radius;
+        const theta = i * 2.39996;
+        const x = Math.cos(theta) * r;
+        const z = Math.sin(theta) * r;
 
-      dummy.position.set(x, y + Math.sin(i) * 0.003, z);
-      dummy.rotation.set(Math.sin(i) * 0.2, theta, Math.cos(i) * 0.2);
-      // Realistic micro size (0.018)
-      dummy.scale.setScalar(0.018 + (i % 3) * 0.005);
-      dummy.updateMatrix();
+        dummy.position.set(x, y + 0.003, z);
+        dummy.rotation.set(Math.sin(i) * 0.2, theta, Math.cos(i) * 0.2);
+        dummy.scale.setScalar(0.016 + (i % 3) * 0.004);
+        dummy.updateMatrix();
 
-      meshRef.current.setMatrixAt(i, dummy.matrix);
-      meshRef.current.setColorAt(i, colors[i % colors.length]);
+        pearlsRef.current.setMatrixAt(i, dummy.matrix);
+        pearlsRef.current.setColorAt(i, colors[i % colors.length]);
+      }
+      pearlsRef.current.instanceMatrix.needsUpdate = true;
+      if (pearlsRef.current.instanceColor) pearlsRef.current.instanceColor.needsUpdate = true;
     }
 
-    meshRef.current.instanceMatrix.needsUpdate = true;
-    if (meshRef.current.instanceColor) {
-      meshRef.current.instanceColor.needsUpdate = true;
+    if (rodsRef.current) {
+      for (let i = 0; i < rodsCount; i++) {
+        const r = (0.3 + Math.sqrt(i / rodsCount) * 0.62) * radius;
+        const theta = (i + 0.5) * 2.39996;
+        const x = Math.cos(theta) * r;
+        const z = Math.sin(theta) * r;
+
+        dummy.position.set(x, y + 0.003, z);
+        dummy.rotation.set(Math.PI * 0.48, (i * 1.3) % Math.PI, Math.sin(i) * 0.15);
+        dummy.scale.set(1, 1, 1);
+        dummy.updateMatrix();
+
+        rodsRef.current.setMatrixAt(i, dummy.matrix);
+        rodsRef.current.setColorAt(i, colors[(i + 3) % colors.length]);
+      }
+      rodsRef.current.instanceMatrix.needsUpdate = true;
+      if (rodsRef.current.instanceColor) rodsRef.current.instanceColor.needsUpdate = true;
     }
-  }, [radius, y, count, colors]);
+  }, [radius, y, pearlsCount, rodsCount, colors]);
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow receiveShadow>
-      <sphereGeometry args={[1, 10, 10]} />
-      <meshPhysicalMaterial roughness={0.15} clearcoat={0.9} clearcoatRoughness={0.1} />
-    </instancedMesh>
+    <group>
+      <instancedMesh ref={pearlsRef} args={[undefined, undefined, pearlsCount]} castShadow receiveShadow>
+        <sphereGeometry args={[1, 8, 8]} />
+        <meshPhysicalMaterial roughness={0.15} clearcoat={0.9} clearcoatRoughness={0.1} />
+      </instancedMesh>
+      <instancedMesh ref={rodsRef} args={[undefined, undefined, rodsCount]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.012, 0.012, 0.045, 8]} />
+        <meshPhysicalMaterial roughness={0.2} clearcoat={0.6} clearcoatRoughness={0.15} />
+      </instancedMesh>
+    </group>
   );
 }
 
@@ -928,15 +954,95 @@ export function LambethSideSwags({
   topY = 0.45,
   swagsCount = 8,
   color = "#FFFDF5",
+  shapeType = "round",
 }: {
   radius?: number;
   topY?: number;
   swagsCount?: number;
   color?: string;
+  shapeType?: CakeShape;
 }) {
   const swagTubes = useMemo(() => {
     const arr = [];
     const rosetteGeom = createFlutedRosetteGeometry(0.055, 8, 8);
+
+    if (shapeType === "rectangle") {
+      const halfW = 1.45;
+      const halfD = 1.05;
+      const wallY = topY;
+
+      // 8 perimeter junction anchor points around the rectangular cake
+      const perimeterPoints: [number, number][] = [
+        [-halfW, -halfD],
+        [0, -halfD],
+        [halfW, -halfD],
+        [halfW, 0],
+        [halfW, halfD],
+        [0, halfD],
+        [-halfW, halfD],
+        [-halfW, 0],
+      ];
+
+      for (let i = 0; i < perimeterPoints.length; i++) {
+        const p0 = perimeterPoints[i];
+        const p1 = perimeterPoints[(i + 1) % perimeterPoints.length];
+
+        const points: THREE.Vector3[] = [];
+        const steps = 12;
+        for (let s = 0; s <= steps; s++) {
+          const u = s / steps;
+          const x = p0[0] + u * (p1[0] - p0[0]);
+          const z = p0[1] + u * (p1[1] - p0[1]);
+          const sag = 0.16 * Math.sin(Math.PI * u);
+          const y = wallY - sag - 0.08;
+          points.push(new THREE.Vector3(x, y, z));
+        }
+        const curve = new THREE.CatmullRomCurve3(points);
+        const tubeGeom = new THREE.TubeGeometry(curve, 16, 0.022, 8, false);
+        const junctionPos: [number, number, number] = [p0[0], wallY - 0.08, p0[1]];
+
+        arr.push({ tubeGeom, junctionPos, rosetteGeom });
+      }
+      return arr;
+    }
+
+    if (shapeType === "heart") {
+      const shape = new THREE.Shape();
+      shape.moveTo(0.5, 0.5);
+      shape.bezierCurveTo(0.5, 0.5, 0.4, 0, 0, 0);
+      shape.bezierCurveTo(-0.6, -0.6, -0.6, 0.7, -0.6, 0.7);
+      shape.bezierCurveTo(-0.6, 1.1, -0.3, 1.54, 0.5, 1.9);
+      shape.bezierCurveTo(1.2, 1.54, 1.6, 1.1, 1.6, 0.7);
+      shape.bezierCurveTo(1.6, 0.7, 1.6, 0, 1.0, 0);
+      shape.bezierCurveTo(0.7, 0.5, 0.5, 0.5, 0.5, 0.5);
+
+      const count = 6;
+      const pts = shape.getSpacedPoints(count);
+      for (let i = 0; i < count; i++) {
+        const p0 = pts[i];
+        const p1 = pts[(i + 1) % count];
+        const x0 = (p0.x - 0.5) * 1.25;
+        const z0 = (p0.y - 0.95) * 1.25;
+        const x1 = (p1.x - 0.5) * 1.25;
+        const z1 = (p1.y - 0.95) * 1.25;
+
+        const points: THREE.Vector3[] = [];
+        const steps = 12;
+        for (let s = 0; s <= steps; s++) {
+          const u = s / steps;
+          const x = x0 + u * (x1 - x0);
+          const z = z0 + u * (z1 - z0);
+          const sag = 0.16 * Math.sin(Math.PI * u);
+          const y = topY - sag - 0.08;
+          points.push(new THREE.Vector3(x, y, z));
+        }
+        const curve = new THREE.CatmullRomCurve3(points);
+        const tubeGeom = new THREE.TubeGeometry(curve, 16, 0.022, 8, false);
+        const junctionPos: [number, number, number] = [x0, topY - 0.08, z0];
+        arr.push({ tubeGeom, junctionPos, rosetteGeom });
+      }
+      return arr;
+    }
 
     for (let i = 0; i < swagsCount; i++) {
       const a0 = (i / swagsCount) * Math.PI * 2;
@@ -964,7 +1070,7 @@ export function LambethSideSwags({
       arr.push({ tubeGeom, junctionPos, rosetteGeom });
     }
     return arr;
-  }, [radius, topY, swagsCount]);
+  }, [radius, topY, swagsCount, shapeType]);
 
   return (
     <group>
@@ -1010,7 +1116,7 @@ export function HautePipingPattern({
   shapeType?: CakeShape;
 }) {
   const count = style === "st-honore" ? 22 : style === "ruffle-ribbon" ? 36 : 28;
-  const lambethShellGeom = useMemo(() => createLambethShellGeometry(0.065, 0.32), []);
+  const lambethShellGeom = useMemo(() => createLambethShellGeometry(0.065, 0.38), []);
   const rosetteGeom = useMemo(() => createFlutedRosetteGeometry(0.075, 8, 8), []);
 
   const beads = useMemo(() => {
@@ -1375,6 +1481,39 @@ export function PuppyBowMesh({ frostingColor = "#FFF9E6" }: { frostingColor?: st
   );
 }
 
+// Helper component: 3D Leader Line connecting cut face to callout badge
+function LeaderLine({
+  from,
+  to,
+  color = "#DAA520",
+}: {
+  from: [number, number, number];
+  to: [number, number, number];
+  color?: string;
+}) {
+  const lineObject = useMemo(() => {
+    const midX = (from[0] + to[0]) * 0.5;
+    const points = [
+      new THREE.Vector3(...from),
+      new THREE.Vector3(midX, from[1], (from[2] + to[2]) * 0.5),
+      new THREE.Vector3(...to),
+    ];
+    const geom = new THREE.BufferGeometry().setFromPoints(points);
+    const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.65 });
+    return new THREE.Line(geom, mat);
+  }, [from, to, color]);
+
+  return (
+    <group>
+      <mesh position={from}>
+        <sphereGeometry args={[0.02, 10, 10]} />
+        <meshBasicMaterial color={color} />
+      </mesh>
+      <primitive object={lineObject} />
+    </group>
+  );
+}
+
 // --- SHAPE-ACCURATE 3D CROSS-SECTION CUTAWAY BLUEPRINT ---
 
 export function FullCrossSectionCutaway({
@@ -1424,69 +1563,200 @@ export function FullCrossSectionCutaway({
   const labelL2Pos: [number, number, number] = [1.55, -0.30, 0.65];
   const labelL1Pos: [number, number, number] = [1.40, -0.55, 0.80];
 
+  // Leader line anchor coordinates on the visible cut face
+  const cutFaceAnchors = useMemo(() => {
+    if (shape === "heart") {
+      return {
+        l5: [0.01, 0.38, 0.25] as [number, number, number],
+        l4: [0.01, 0.13, 0.25] as [number, number, number],
+        l3: [0.01, -0.06, 0.25] as [number, number, number],
+        l2: [0.01, -0.25, 0.25] as [number, number, number],
+        l1: [0.01, -0.43, 0.25] as [number, number, number],
+      };
+    }
+    // Rectangle or radial round cut face
+    return {
+      l5: [0.72, 0.38, 0.01] as [number, number, number],
+      l4: [0.72, 0.11, 0.01] as [number, number, number],
+      l3: [0.72, -0.08, 0.01] as [number, number, number],
+      l2: [0.72, -0.27, 0.01] as [number, number, number],
+      l1: [0.72, -0.45, 0.01] as [number, number, number],
+    };
+  }, [shape]);
+
+  // Half-heart geometries for shape-accurate heart cutaway
+  const { heartL1, heartL2, heartL3, heartL4, heartL5, heartFloatingSlice } = useMemo(() => {
+    const shapeL = new THREE.Shape();
+    shapeL.moveTo(0, -0.65);
+    shapeL.bezierCurveTo(-0.55, -0.25, -1.25, 0.15, -1.25, 0.55);
+    shapeL.bezierCurveTo(-1.25, 0.95, -0.65, 1.15, 0, 0.75);
+    shapeL.lineTo(0, -0.65);
+
+    const shapeR = new THREE.Shape();
+    shapeR.moveTo(0, -0.65);
+    shapeR.bezierCurveTo(0.55, -0.25, 1.25, 0.15, 1.25, 0.55);
+    shapeR.bezierCurveTo(1.25, 0.95, 0.65, 1.15, 0, 0.75);
+    shapeR.lineTo(0, -0.65);
+
+    const makeExtrusion = (s: THREE.Shape, depth: number) => {
+      const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false });
+      g.rotateX(Math.PI / 2);
+      return g;
+    };
+
+    return {
+      heartL1: makeExtrusion(shapeL, 0.10),
+      heartL2: makeExtrusion(shapeL, 0.26),
+      heartL3: makeExtrusion(shapeL, 0.12),
+      heartL4: makeExtrusion(shapeL, 0.26),
+      heartL5: makeExtrusion(shapeL, 0.24),
+      heartFloatingSlice: makeExtrusion(shapeR, 0.98),
+    };
+  }, []);
+
   return (
     <group scale={groupScale} position={[0, -0.2, 0]}>
+      {/* 3D Leader Lines connecting cut faces to callout badges */}
+      <LeaderLine from={cutFaceAnchors.l5} to={labelL5Pos} color="#FF3366" />
+      <LeaderLine from={cutFaceAnchors.l4} to={labelL4Pos} color="#A0C4FF" />
+      {(gelee !== "none" || isDaily) && (
+        <LeaderLine from={cutFaceAnchors.l3} to={labelL3Pos} color="#E6194B" />
+      )}
+      <LeaderLine from={cutFaceAnchors.l2} to={labelL2Pos} color="#DAA520" />
+      <LeaderLine from={cutFaceAnchors.l1} to={labelL1Pos} color="#B07D4F" />
+
       {/* Render Shape-Aware Cutaway Mesh */}
       {shape === "rectangle" ? (
-        // RECTANGULAR BAROQUE ACCURATE CUTAWAY (Front-Right Quadrant Sliced)
+        // RECTANGULAR BAROQUE ACCURATE 3/4 L-SHAPED CUTAWAY (Front-Right Quadrant Open)
         <group>
-          {/* Back-Left intact quadrant */}
-          <mesh position={[-0.75, 0, -0.55]} castShadow receiveShadow>
-            <boxGeometry args={[1.5, 1.0, 1.1]} />
+          {/* Outer Frosting Shell on remaining 3 exterior sides */}
+          <mesh position={[-1.51, 0, 0]} castShadow receiveShadow>
+            <boxGeometry args={[0.02, 1.0, 2.2]} />
             <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
           </mesh>
-          {/* Back-Right intact quadrant */}
-          <mesh position={[0.75, 0, -0.55]} castShadow receiveShadow>
-            <boxGeometry args={[1.5, 1.0, 1.1]} />
+          <mesh position={[0, 0, -1.11]} castShadow receiveShadow>
+            <boxGeometry args={[3.02, 1.0, 0.02]} />
             <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
           </mesh>
-          {/* Front-Left intact quadrant */}
-          <mesh position={[-0.75, 0, 0.55]} castShadow receiveShadow>
-            <boxGeometry args={[1.5, 1.0, 1.1]} />
+          <mesh position={[-0.75, 0, 1.11]} castShadow receiveShadow>
+            <boxGeometry args={[1.52, 1.0, 0.02]} />
+            <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
+          </mesh>
+          <mesh position={[1.51, 0, -0.55]} castShadow receiveShadow>
+            <boxGeometry args={[0.02, 1.0, 1.12]} />
             <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
           </mesh>
 
-          {/* Front-Right EXPOSED INTERNAL LAYERS */}
-          <group position={[0.75, 0, 0.55]}>
-            {/* L1 Crunch Base */}
-            <mesh position={[0, -0.45, 0]} castShadow>
-              <boxGeometry args={[1.48, 0.1, 1.08]} />
-              <meshStandardMaterial color="#B07D4F" roughness={0.9} />
-            </mesh>
-            {/* L2 Rectangular Sponge */}
-            <mesh position={[0, -0.27, 0]} castShadow>
-              <boxGeometry args={[1.48, 0.26, 1.08]} />
-              <meshPhysicalMaterial
-                color={spongeObj?.color || "#F7E7B4"}
-                roughness={0.88}
-                bumpMap={crumbBumpMap || undefined}
-                bumpScale={0.035}
-              />
-            </mesh>
-            {/* L3 Compote */}
-            {gelee !== "none" && (
-              <mesh position={[0, -0.08, 0]} castShadow>
-                <boxGeometry args={[1.48, 0.12, 1.08]} />
+          {/* Top Frosting Layer on Intact L-Shape */}
+          <mesh position={[0, 0.505, -0.55]} castShadow receiveShadow>
+            <boxGeometry args={[3.0, 0.02, 1.1]} />
+            <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
+          </mesh>
+          <mesh position={[-0.75, 0.505, 0.55]} castShadow receiveShadow>
+            <boxGeometry args={[1.5, 0.02, 1.1]} />
+            <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
+          </mesh>
+
+          {/* 5 INTERNAL LAYERS: Each composed of Back-Half + Front-Left Quadrant */}
+          {/* L1: Base Crunch */}
+          <mesh position={[0, -0.45, -0.55]} castShadow>
+            <boxGeometry args={[3.0, 0.1, 1.1]} />
+            <meshStandardMaterial color="#B07D4F" roughness={0.9} />
+          </mesh>
+          <mesh position={[-0.75, -0.45, 0.55]} castShadow>
+            <boxGeometry args={[1.5, 0.1, 1.1]} />
+            <meshStandardMaterial color="#B07D4F" roughness={0.9} />
+          </mesh>
+
+          {/* L2: Sponge */}
+          <mesh position={[0, -0.27, -0.55]} castShadow>
+            <boxGeometry args={[3.0, 0.26, 1.1]} />
+            <meshPhysicalMaterial
+              color={spongeObj?.color || "#F7E7B4"}
+              roughness={0.88}
+              bumpMap={crumbBumpMap || undefined}
+              bumpScale={0.035}
+            />
+          </mesh>
+          <mesh position={[-0.75, -0.27, 0.55]} castShadow>
+            <boxGeometry args={[1.5, 0.26, 1.1]} />
+            <meshPhysicalMaterial
+              color={spongeObj?.color || "#F7E7B4"}
+              roughness={0.88}
+              bumpMap={crumbBumpMap || undefined}
+              bumpScale={0.035}
+            />
+          </mesh>
+
+          {/* L3: Compote Gelée */}
+          {gelee !== "none" && (
+            <>
+              <mesh position={[0, -0.08, -0.55]} castShadow>
+                <boxGeometry args={[3.0, 0.12, 1.1]} />
                 <meshPhysicalMaterial
                   color={geleeObj?.color || "#B8002E"}
                   roughness={0.1}
                   transmission={0.4}
                 />
               </mesh>
+              <mesh position={[-0.75, -0.08, 0.55]} castShadow>
+                <boxGeometry args={[1.5, 0.12, 1.1]} />
+                <meshPhysicalMaterial
+                  color={geleeObj?.color || "#B8002E"}
+                  roughness={0.1}
+                  transmission={0.4}
+                />
+              </mesh>
+            </>
+          )}
+
+          {/* L4: Mousse */}
+          <mesh position={[0, 0.11, -0.55]} castShadow>
+            <boxGeometry args={[3.0, 0.26, 1.1]} />
+            <meshStandardMaterial color={mousseObj?.color || "#FFFDF5"} roughness={0.4} />
+          </mesh>
+          <mesh position={[-0.75, 0.11, 0.55]} castShadow>
+            <boxGeometry args={[1.5, 0.26, 1.1]} />
+            <meshStandardMaterial color={mousseObj?.color || "#FFFDF5"} roughness={0.4} />
+          </mesh>
+
+          {/* L5: Top Layer */}
+          <mesh position={[0, 0.38, -0.55]} castShadow>
+            <boxGeometry args={[3.0, 0.24, 1.1]} />
+            <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
+          </mesh>
+          <mesh position={[-0.75, 0.38, 0.55]} castShadow>
+            <boxGeometry args={[1.5, 0.24, 1.1]} />
+            <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
+          </mesh>
+
+          {/* Extracted Floating Cutaway Slice in Front-Right */}
+          <group position={[0.75, 0.18, 0.75]}>
+            <mesh position={[0, -0.45, 0]} castShadow>
+              <boxGeometry args={[1.3, 0.1, 0.9]} />
+              <meshStandardMaterial color="#B07D4F" roughness={0.9} />
+            </mesh>
+            <mesh position={[0, -0.27, 0]} castShadow>
+              <boxGeometry args={[1.3, 0.26, 0.9]} />
+              <meshPhysicalMaterial color={spongeObj?.color || "#F7E7B4"} roughness={0.88} />
+            </mesh>
+            {gelee !== "none" && (
+              <mesh position={[0, -0.08, 0]} castShadow>
+                <boxGeometry args={[1.3, 0.12, 0.9]} />
+                <meshPhysicalMaterial color={geleeObj?.color || "#B8002E"} roughness={0.1} />
+              </mesh>
             )}
-            {/* L4 Mousse */}
             <mesh position={[0, 0.11, 0]} castShadow>
-              <boxGeometry args={[1.48, 0.26, 1.08]} />
+              <boxGeometry args={[1.3, 0.26, 0.9]} />
               <meshStandardMaterial color={mousseObj?.color || "#FFFDF5"} roughness={0.4} />
             </mesh>
-            {/* L5 Top Frosting Layer */}
             <mesh position={[0, 0.38, 0]} castShadow>
-              <boxGeometry args={[1.48, 0.24, 1.08]} />
+              <boxGeometry args={[1.3, 0.24, 0.9]} />
               <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
             </mesh>
           </group>
 
-          {/* 4 Wooden Dowels Ø6mm in rectangle corners */}
+          {/* 4 Wooden Dowels Ø6mm with Front-Right dowel exposed in cutaway */}
           <group>
             {[
               [0.55, 0, 0.45],
@@ -1499,10 +1769,69 @@ export function FullCrossSectionCutaway({
                 <meshStandardMaterial color="#D2A679" roughness={0.65} />
               </mesh>
             ))}
+            <Html position={[0.55, 0.05, 0.45]} center>
+              <div className="bg-amber-900/95 backdrop-blur-md text-amber-100 px-2.5 py-1 rounded-lg border border-amber-400 shadow-md text-[9px] font-bold whitespace-nowrap animate-pulse">
+                🛡️ 4x Trụ Dowel Gỗ Ø6mm (Gia Cố Kết Cấu)
+              </div>
+            </Html>
+          </group>
+        </group>
+      ) : shape === "heart" ? (
+        // HEART SHAPE-ACCURATE CUTAWAY (Left Lobe Intact, Right Sliced & Floating)
+        <group>
+          {/* Left Lobe 5 Layers along X=0 sagittal cut face */}
+          <mesh geometry={heartL5} position={[0, 0.50, 0]} castShadow receiveShadow>
+            <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
+          </mesh>
+          <mesh geometry={heartL4} position={[0, 0.26, 0]} castShadow receiveShadow>
+            <meshStandardMaterial color={mousseObj?.color || "#FFFDF5"} roughness={0.4} />
+          </mesh>
+          {gelee !== "none" && (
+            <mesh geometry={heartL3} position={[0, 0.0, 0]} castShadow receiveShadow>
+              <meshPhysicalMaterial color={geleeObj?.color || "#B8002E"} roughness={0.1} transmission={0.4} />
+            </mesh>
+          )}
+          <mesh geometry={heartL2} position={[0, -0.12, 0]} castShadow receiveShadow>
+            <meshPhysicalMaterial
+              color={spongeObj?.color || "#F7E7B4"}
+              roughness={0.88}
+              bumpMap={crumbBumpMap || undefined}
+              bumpScale={0.035}
+            />
+          </mesh>
+          <mesh geometry={heartL1} position={[0, -0.38, 0]} castShadow receiveShadow>
+            <meshStandardMaterial color="#B07D4F" roughness={0.9} />
+          </mesh>
+
+          {/* Extracted Floating Right Lobe */}
+          <group position={[0.65, 0.68, 0.25]}>
+            <mesh geometry={heartFloatingSlice} castShadow receiveShadow>
+              <meshPhysicalMaterial color={frostingColor} roughness={0.3} transmission={0.06} />
+            </mesh>
+          </group>
+
+          {/* 4 Wooden Dowels in Heart Structure */}
+          <group>
+            {[
+              [0, 0, 0.15],
+              [-0.45, 0, 0.45],
+              [-0.45, 0, -0.15],
+              [0.45, 0, 0.45],
+            ].map((pos, idx) => (
+              <mesh key={`heart-dowel-${idx}`} position={pos as [number, number, number]} castShadow>
+                <cylinderGeometry args={[0.045, 0.045, 0.92, 16]} />
+                <meshStandardMaterial color="#D2A679" roughness={0.65} metalness={0.05} />
+              </mesh>
+            ))}
+            <Html position={[0, 0.05, 0.15]} center>
+              <div className="bg-amber-900/95 backdrop-blur-md text-amber-100 px-2.5 py-1 rounded-lg border border-amber-400 shadow-md text-[9px] font-bold whitespace-nowrap animate-pulse">
+                🛡️ 4x Trụ Dowel Gỗ Ø6mm (Gia Cố Trái Tim)
+              </div>
+            </Html>
           </group>
         </group>
       ) : (
-        // ROUND / TIERED / HEART RADIAL CUTAWAY
+        // ROUND / TIERED RADIAL CUTAWAY
         <group>
           {/* 3/4 Outer Frosting Shell */}
           <mesh position={[0, 0, 0]} castShadow receiveShadow>
