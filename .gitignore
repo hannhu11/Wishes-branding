@@ -1,0 +1,93 @@
+# ==============================================================================
+# WISHES CAPSTONE — STRICT SECURITY & DEVOPS .GITIGNORE
+# ==============================================================================
+
+# Node & Package Managers
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-store/
+
+# Next.js Build Outputs & Cache
+.next/
+out/
+build/
+dist/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+
+# OS & Editor Artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ==============================================================================
+# STRICT SECURITY COMPLIANCE (DevSecOps, OWASP & GitHub Secret Scanning)
+# ==============================================================================
+
+# Private Keys, Certificates & SSH
+*.pem
+*.key
+*.pkcs12
+*.pfx
+*.p12
+*.crt
+id_rsa
+id_rsa*
+id_ed25519
+id_ed25519*
+known_hosts
+*.ppk
+
+# Secrets, Environment Variables & Configs
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
+.env.staging
+credentials.json
+service-account*.json
+*.keystore
+
+# Infrastructure & Server Files
+docker-compose.override.yml
+kubeconfig*
+*.ovpn
+server-config*
+
+# Internal Brain & Memory Files (MANDATORY: DO NOT LEAK MEMORY/PROMPTS)
+PROJECT_MEMORY.md
+*memory*.md
+.antigravity/
+.system_generated/
+*.jsonl
+
+# Python Scratch Scripts & Cache (from asset inspection)
+__pycache__/
+*.py[cod]
+*$py.class
+inspect_pdf.py
+inspect_specific_pages.py
+extract_assets.py
+print_key_assets.py
+optimize_assets.py
+.design-dna-temp/
+
+# Large Original PDF Source & Duplicate Raw Assets (Keep only public/assets for web)
+*.pdf
+assets/
+

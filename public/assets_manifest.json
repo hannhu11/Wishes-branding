@@ -1,0 +1,1840 @@
+{
+  "extracted_images": [
+    {
+      "filename": "p01_01_cover_and_project_info.png",
+      "relative_path": "assets/extracted_images/p01_01_cover_and_project_info.png",
+      "page": 1,
+      "topic": "Cover & Project Info",
+      "width": 325,
+      "height": 127,
+      "ext": "png",
+      "size_kb": 0.2
+    },
+    {
+      "filename": "p01_02_cover_and_project_info.png",
+      "relative_path": "assets/extracted_images/p01_02_cover_and_project_info.png",
+      "page": 1,
+      "topic": "Cover & Project Info",
+      "width": 412,
+      "height": 184,
+      "ext": "png",
+      "size_kb": 22.6
+    },
+    {
+      "filename": "p02_01_table_of_contents.png",
+      "relative_path": "assets/extracted_images/p02_01_table_of_contents.png",
+      "page": 2,
+      "topic": "Table of Contents",
+      "width": 325,
+      "height": 127,
+      "ext": "png",
+      "size_kb": 0.2
+    },
+    {
+      "filename": "p02_02_table_of_contents.png",
+      "relative_path": "assets/extracted_images/p02_02_table_of_contents.png",
+      "page": 2,
+      "topic": "Table of Contents",
+      "width": 412,
+      "height": 184,
+      "ext": "png",
+      "size_kb": 22.6
+    },
+    {
+      "filename": "p04_01_market_observation_1.png",
+      "relative_path": "assets/extracted_images/p04_01_market_observation_1.png",
+      "page": 4,
+      "topic": "Market Observation 1",
+      "width": 662,
+      "height": 828,
+      "ext": "png",
+      "size_kb": 1093.6
+    },
+    {
+      "filename": "p04_02_market_observation_1.png",
+      "relative_path": "assets/extracted_images/p04_02_market_observation_1.png",
+      "page": 4,
+      "topic": "Market Observation 1",
+      "width": 663,
+      "height": 521,
+      "ext": "png",
+      "size_kb": 348.3
+    },
+    {
+      "filename": "p04_03_market_observation_1.png",
+      "relative_path": "assets/extracted_images/p04_03_market_observation_1.png",
+      "page": 4,
+      "topic": "Market Observation 1",
+      "width": 589,
+      "height": 589,
+      "ext": "png",
+      "size_kb": 585.0
+    },
+    {
+      "filename": "p05_01_market_observation_2.png",
+      "relative_path": "assets/extracted_images/p05_01_market_observation_2.png",
+      "page": 5,
+      "topic": "Market Observation 2",
+      "width": 720,
+      "height": 960,
+      "ext": "png",
+      "size_kb": 1219.6
+    },
+    {
+      "filename": "p05_02_market_observation_2.png",
+      "relative_path": "assets/extracted_images/p05_02_market_observation_2.png",
+      "page": 5,
+      "topic": "Market Observation 2",
+      "width": 663,
+      "height": 497,
+      "ext": "png",
+      "size_kb": 330.4
+    },
+    {
+      "filename": "p05_03_market_observation_2.png",
+      "relative_path": "assets/extracted_images/p05_03_market_observation_2.png",
+      "page": 5,
+      "topic": "Market Observation 2",
+      "width": 675,
+      "height": 416,
+      "ext": "png",
+      "size_kb": 646.0
+    },
+    {
+      "filename": "p06_01_wishes_solution.png",
+      "relative_path": "assets/extracted_images/p06_01_wishes_solution.png",
+      "page": 6,
+      "topic": "Wishes Solution",
+      "width": 402,
+      "height": 619,
+      "ext": "png",
+      "size_kb": 470.3
+    },
+    {
+      "filename": "p06_02_wishes_solution.png",
+      "relative_path": "assets/extracted_images/p06_02_wishes_solution.png",
+      "page": 6,
+      "topic": "Wishes Solution",
+      "width": 442,
+      "height": 785,
+      "ext": "png",
+      "size_kb": 629.0
+    },
+    {
+      "filename": "p07_01_pastry_definition_and_concept.png",
+      "relative_path": "assets/extracted_images/p07_01_pastry_definition_and_concept.png",
+      "page": 7,
+      "topic": "Pastry Definition & Concept",
+      "width": 960,
+      "height": 1068,
+      "ext": "png",
+      "size_kb": 1741.7
+    },
+    {
+      "filename": "p07_02_pastry_definition_and_concept.png",
+      "relative_path": "assets/extracted_images/p07_02_pastry_definition_and_concept.png",
+      "page": 7,
+      "topic": "Pastry Definition & Concept",
+      "width": 368,
+      "height": 460,
+      "ext": "png",
+      "size_kb": 367.2
+    },
+    {
+      "filename": "p07_03_pastry_definition_and_concept.png",
+      "relative_path": "assets/extracted_images/p07_03_pastry_definition_and_concept.png",
+      "page": 7,
+      "topic": "Pastry Definition & Concept",
+      "width": 349,
+      "height": 480,
+      "ext": "png",
+      "size_kb": 271.2
+    },
+    {
+      "filename": "p07_04_pastry_definition_and_concept.png",
+      "relative_path": "assets/extracted_images/p07_04_pastry_definition_and_concept.png",
+      "page": 7,
+      "topic": "Pastry Definition & Concept",
+      "width": 516,
+      "height": 945,
+      "ext": "png",
+      "size_kb": 670.7
+    },
+    {
+      "filename": "p08_01_expert_laure___bakes_french_sa.png",
+      "relative_path": "assets/extracted_images/p08_01_expert_laure___bakes_french_sa.png",
+      "page": 8,
+      "topic": "Expert Laure - Bakes French Saigon",
+      "width": 1152,
+      "height": 768,
+      "ext": "png",
+      "size_kb": 1943.7
+    },
+    {
+      "filename": "p08_02_expert_laure___bakes_french_sa.png",
+      "relative_path": "assets/extracted_images/p08_02_expert_laure___bakes_french_sa.png",
+      "page": 8,
+      "topic": "Expert Laure - Bakes French Saigon",
+      "width": 496,
+      "height": 485,
+      "ext": "png",
+      "size_kb": 359.2
+    },
+    {
+      "filename": "p09_01_expert_kasey_doan___ivoire_pas.png",
+      "relative_path": "assets/extracted_images/p09_01_expert_kasey_doan___ivoire_pas.png",
+      "page": 9,
+      "topic": "Expert Kasey Doan - Ivoire Pastry",
+      "width": 768,
+      "height": 508,
+      "ext": "png",
+      "size_kb": 403.8
+    },
+    {
+      "filename": "p09_02_expert_kasey_doan___ivoire_pas.png",
+      "relative_path": "assets/extracted_images/p09_02_expert_kasey_doan___ivoire_pas.png",
+      "page": 9,
+      "topic": "Expert Kasey Doan - Ivoire Pastry",
+      "width": 461,
+      "height": 576,
+      "ext": "png",
+      "size_kb": 290.5
+    },
+    {
+      "filename": "p09_03_expert_kasey_doan___ivoire_pas.png",
+      "relative_path": "assets/extracted_images/p09_03_expert_kasey_doan___ivoire_pas.png",
+      "page": 9,
+      "topic": "Expert Kasey Doan - Ivoire Pastry",
+      "width": 838,
+      "height": 558,
+      "ext": "png",
+      "size_kb": 1044.5
+    },
+    {
+      "filename": "p11_01_fine_craftsmanship_concept.png",
+      "relative_path": "assets/extracted_images/p11_01_fine_craftsmanship_concept.png",
+      "page": 11,
+      "topic": "Fine Craftsmanship Concept",
+      "width": 1200,
+      "height": 1200,
+      "ext": "png",
+      "size_kb": 849.1
+    },
+    {
+      "filename": "p13_01_boutique_pastry_positioning.png",
+      "relative_path": "assets/extracted_images/p13_01_boutique_pastry_positioning.png",
+      "page": 13,
+      "topic": "Boutique Pastry Positioning",
+      "width": 480,
+      "height": 576,
+      "ext": "png",
+      "size_kb": 600.5
+    },
+    {
+      "filename": "p13_02_boutique_pastry_positioning.png",
+      "relative_path": "assets/extracted_images/p13_02_boutique_pastry_positioning.png",
+      "page": 13,
+      "topic": "Boutique Pastry Positioning",
+      "width": 442,
+      "height": 782,
+      "ext": "png",
+      "size_kb": 474.8
+    },
+    {
+      "filename": "p13_03_boutique_pastry_positioning.png",
+      "relative_path": "assets/extracted_images/p13_03_boutique_pastry_positioning.png",
+      "page": 13,
+      "topic": "Boutique Pastry Positioning",
+      "width": 736,
+      "height": 981,
+      "ext": "png",
+      "size_kb": 887.9
+    },
+    {
+      "filename": "p14_01_competitor___high_end_artisana.png",
+      "relative_path": "assets/extracted_images/p14_01_competitor___high_end_artisana.png",
+      "page": 14,
+      "topic": "Competitor - High End Artisanal",
+      "width": 591,
+      "height": 738,
+      "ext": "png",
+      "size_kb": 833.2
+    },
+    {
+      "filename": "p14_02_competitor___high_end_artisana.png",
+      "relative_path": "assets/extracted_images/p14_02_competitor___high_end_artisana.png",
+      "page": 14,
+      "topic": "Competitor - High End Artisanal",
+      "width": 672,
+      "height": 672,
+      "ext": "png",
+      "size_kb": 40.0
+    },
+    {
+      "filename": "p14_03_competitor___high_end_artisana.png",
+      "relative_path": "assets/extracted_images/p14_03_competitor___high_end_artisana.png",
+      "page": 14,
+      "topic": "Competitor - High End Artisanal",
+      "width": 359,
+      "height": 448,
+      "ext": "png",
+      "size_kb": 343.6
+    },
+    {
+      "filename": "p14_04_competitor___high_end_artisana.png",
+      "relative_path": "assets/extracted_images/p14_04_competitor___high_end_artisana.png",
+      "page": 14,
+      "topic": "Competitor - High End Artisanal",
+      "width": 432,
+      "height": 540,
+      "ext": "png",
+      "size_kb": 498.9
+    },
+    {
+      "filename": "p14_05_competitor___high_end_artisana.png",
+      "relative_path": "assets/extracted_images/p14_05_competitor___high_end_artisana.png",
+      "page": 14,
+      "topic": "Competitor - High End Artisanal",
+      "width": 432,
+      "height": 540,
+      "ext": "png",
+      "size_kb": 442.8
+    },
+    {
+      "filename": "p15_01_competitor___creative_concept.png",
+      "relative_path": "assets/extracted_images/p15_01_competitor___creative_concept.png",
+      "page": 15,
+      "topic": "Competitor - Creative Concept",
+      "width": 681,
+      "height": 681,
+      "ext": "png",
+      "size_kb": 13.2
+    },
+    {
+      "filename": "p15_02_competitor___creative_concept.png",
+      "relative_path": "assets/extracted_images/p15_02_competitor___creative_concept.png",
+      "page": 15,
+      "topic": "Competitor - Creative Concept",
+      "width": 600,
+      "height": 600,
+      "ext": "png",
+      "size_kb": 684.8
+    },
+    {
+      "filename": "p15_03_competitor___creative_concept.png",
+      "relative_path": "assets/extracted_images/p15_03_competitor___creative_concept.png",
+      "page": 15,
+      "topic": "Competitor - Creative Concept",
+      "width": 461,
+      "height": 615,
+      "ext": "png",
+      "size_kb": 604.4
+    },
+    {
+      "filename": "p15_04_competitor___creative_concept.png",
+      "relative_path": "assets/extracted_images/p15_04_competitor___creative_concept.png",
+      "page": 15,
+      "topic": "Competitor - Creative Concept",
+      "width": 432,
+      "height": 541,
+      "ext": "png",
+      "size_kb": 580.7
+    },
+    {
+      "filename": "p15_05_competitor___creative_concept.png",
+      "relative_path": "assets/extracted_images/p15_05_competitor___creative_concept.png",
+      "page": 15,
+      "topic": "Competitor - Creative Concept",
+      "width": 432,
+      "height": 576,
+      "ext": "png",
+      "size_kb": 406.1
+    },
+    {
+      "filename": "p16_01_competitor___nostalgic_bakery.png",
+      "relative_path": "assets/extracted_images/p16_01_competitor___nostalgic_bakery.png",
+      "page": 16,
+      "topic": "Competitor - Nostalgic Bakery",
+      "width": 512,
+      "height": 768,
+      "ext": "png",
+      "size_kb": 654.3
+    },
+    {
+      "filename": "p16_02_competitor___nostalgic_bakery.png",
+      "relative_path": "assets/extracted_images/p16_02_competitor___nostalgic_bakery.png",
+      "page": 16,
+      "topic": "Competitor - Nostalgic Bakery",
+      "width": 492,
+      "height": 615,
+      "ext": "png",
+      "size_kb": 562.2
+    },
+    {
+      "filename": "p16_03_competitor___nostalgic_bakery.png",
+      "relative_path": "assets/extracted_images/p16_03_competitor___nostalgic_bakery.png",
+      "page": 16,
+      "topic": "Competitor - Nostalgic Bakery",
+      "width": 612,
+      "height": 615,
+      "ext": "png",
+      "size_kb": 355.2
+    },
+    {
+      "filename": "p16_04_competitor___nostalgic_bakery.png",
+      "relative_path": "assets/extracted_images/p16_04_competitor___nostalgic_bakery.png",
+      "page": 16,
+      "topic": "Competitor - Nostalgic Bakery",
+      "width": 492,
+      "height": 615,
+      "ext": "png",
+      "size_kb": 661.5
+    },
+    {
+      "filename": "p16_05_competitor___nostalgic_bakery.png",
+      "relative_path": "assets/extracted_images/p16_05_competitor___nostalgic_bakery.png",
+      "page": 16,
+      "topic": "Competitor - Nostalgic Bakery",
+      "width": 820,
+      "height": 820,
+      "ext": "png",
+      "size_kb": 46.1
+    },
+    {
+      "filename": "p17_01_competitor___industrial_chains.png",
+      "relative_path": "assets/extracted_images/p17_01_competitor___industrial_chains.png",
+      "page": 17,
+      "topic": "Competitor - Industrial Chains",
+      "width": 256,
+      "height": 163,
+      "ext": "png",
+      "size_kb": 51.7
+    },
+    {
+      "filename": "p17_02_competitor___industrial_chains.png",
+      "relative_path": "assets/extracted_images/p17_02_competitor___industrial_chains.png",
+      "page": 17,
+      "topic": "Competitor - Industrial Chains",
+      "width": 240,
+      "height": 240,
+      "ext": "png",
+      "size_kb": 27.0
+    },
+    {
+      "filename": "p17_03_competitor___industrial_chains.png",
+      "relative_path": "assets/extracted_images/p17_03_competitor___industrial_chains.png",
+      "page": 17,
+      "topic": "Competitor - Industrial Chains",
+      "width": 368,
+      "height": 654,
+      "ext": "png",
+      "size_kb": 594.8
+    },
+    {
+      "filename": "p17_04_competitor___industrial_chains.png",
+      "relative_path": "assets/extracted_images/p17_04_competitor___industrial_chains.png",
+      "page": 17,
+      "topic": "Competitor - Industrial Chains",
+      "width": 450,
+      "height": 600,
+      "ext": "png",
+      "size_kb": 680.7
+    },
+    {
+      "filename": "p17_05_competitor___industrial_chains.png",
+      "relative_path": "assets/extracted_images/p17_05_competitor___industrial_chains.png",
+      "page": 17,
+      "topic": "Competitor - Industrial Chains",
+      "width": 432,
+      "height": 432,
+      "ext": "png",
+      "size_kb": 421.6
+    },
+    {
+      "filename": "p17_06_competitor___industrial_chains.png",
+      "relative_path": "assets/extracted_images/p17_06_competitor___industrial_chains.png",
+      "page": 17,
+      "topic": "Competitor - Industrial Chains",
+      "width": 368,
+      "height": 491,
+      "ext": "png",
+      "size_kb": 413.9
+    },
+    {
+      "filename": "p18_01_competitor___local_small_baker.png",
+      "relative_path": "assets/extracted_images/p18_01_competitor___local_small_baker.png",
+      "page": 18,
+      "topic": "Competitor - Local Small Bakeries",
+      "width": 432,
+      "height": 432,
+      "ext": "png",
+      "size_kb": 97.5
+    },
+    {
+      "filename": "p18_02_competitor___local_small_baker.png",
+      "relative_path": "assets/extracted_images/p18_02_competitor___local_small_baker.png",
+      "page": 18,
+      "topic": "Competitor - Local Small Bakeries",
+      "width": 600,
+      "height": 600,
+      "ext": "png",
+      "size_kb": 522.2
+    },
+    {
+      "filename": "p18_03_competitor___local_small_baker.png",
+      "relative_path": "assets/extracted_images/p18_03_competitor___local_small_baker.png",
+      "page": 18,
+      "topic": "Competitor - Local Small Bakeries",
+      "width": 600,
+      "height": 600,
+      "ext": "png",
+      "size_kb": 677.0
+    },
+    {
+      "filename": "p18_04_competitor___local_small_baker.png",
+      "relative_path": "assets/extracted_images/p18_04_competitor___local_small_baker.png",
+      "page": 18,
+      "topic": "Competitor - Local Small Bakeries",
+      "width": 615,
+      "height": 615,
+      "ext": "png",
+      "size_kb": 228.1
+    },
+    {
+      "filename": "p18_05_competitor___local_small_baker.png",
+      "relative_path": "assets/extracted_images/p18_05_competitor___local_small_baker.png",
+      "page": 18,
+      "topic": "Competitor - Local Small Bakeries",
+      "width": 615,
+      "height": 615,
+      "ext": "png",
+      "size_kb": 606.1
+    },
+    {
+      "filename": "p18_06_competitor___local_small_baker.png",
+      "relative_path": "assets/extracted_images/p18_06_competitor___local_small_baker.png",
+      "page": 18,
+      "topic": "Competitor - Local Small Bakeries",
+      "width": 461,
+      "height": 615,
+      "ext": "png",
+      "size_kb": 706.3
+    },
+    {
+      "filename": "p28_01_customer_persona_thy.jpeg",
+      "relative_path": "assets/extracted_images/p28_01_customer_persona_thy.jpeg",
+      "page": 28,
+      "topic": "Customer Persona Thy",
+      "width": 864,
+      "height": 864,
+      "ext": "jpeg",
+      "size_kb": 213.6
+    },
+    {
+      "filename": "p29_01_customer_persona_hang.png",
+      "relative_path": "assets/extracted_images/p29_01_customer_persona_hang.png",
+      "page": 29,
+      "topic": "Customer Persona Hang",
+      "width": 641,
+      "height": 768,
+      "ext": "png",
+      "size_kb": 876.3
+    },
+    {
+      "filename": "p30_01_customer_research.png",
+      "relative_path": "assets/extracted_images/p30_01_customer_research.png",
+      "page": 30,
+      "topic": "Customer Research",
+      "width": 527,
+      "height": 627,
+      "ext": "png",
+      "size_kb": 672.3
+    },
+    {
+      "filename": "p31_01_page_31.png",
+      "relative_path": "assets/extracted_images/p31_01_page_31.png",
+      "page": 31,
+      "topic": "Page 31",
+      "width": 527,
+      "height": 627,
+      "ext": "png",
+      "size_kb": 672.3
+    },
+    {
+      "filename": "p33_01_product_research_section.png",
+      "relative_path": "assets/extracted_images/p33_01_product_research_section.png",
+      "page": 33,
+      "topic": "Product Research Section",
+      "width": 1079,
+      "height": 608,
+      "ext": "png",
+      "size_kb": 1243.3
+    },
+    {
+      "filename": "p34_01_product_category_overview.png",
+      "relative_path": "assets/extracted_images/p34_01_product_category_overview.png",
+      "page": 34,
+      "topic": "Product Category Overview",
+      "width": 595,
+      "height": 720,
+      "ext": "png",
+      "size_kb": 904.1
+    },
+    {
+      "filename": "p34_02_product_category_overview.png",
+      "relative_path": "assets/extracted_images/p34_02_product_category_overview.png",
+      "page": 34,
+      "topic": "Product Category Overview",
+      "width": 516,
+      "height": 916,
+      "ext": "png",
+      "size_kb": 540.1
+    },
+    {
+      "filename": "p34_03_product_category_overview.png",
+      "relative_path": "assets/extracted_images/p34_03_product_category_overview.png",
+      "page": 34,
+      "topic": "Product Category Overview",
+      "width": 441,
+      "height": 587,
+      "ext": "png",
+      "size_kb": 377.4
+    },
+    {
+      "filename": "p35_01_cake_structure.png",
+      "relative_path": "assets/extracted_images/p35_01_cake_structure.png",
+      "page": 35,
+      "topic": "Cake Structure",
+      "width": 720,
+      "height": 702,
+      "ext": "png",
+      "size_kb": 289.5
+    },
+    {
+      "filename": "p36_01_cake_flavors_and_trends.png",
+      "relative_path": "assets/extracted_images/p36_01_cake_flavors_and_trends.png",
+      "page": 36,
+      "topic": "Cake Flavors & Trends",
+      "width": 461,
+      "height": 820,
+      "ext": "png",
+      "size_kb": 887.0
+    },
+    {
+      "filename": "p36_02_cake_flavors_and_trends.png",
+      "relative_path": "assets/extracted_images/p36_02_cake_flavors_and_trends.png",
+      "page": 36,
+      "topic": "Cake Flavors & Trends",
+      "width": 461,
+      "height": 820,
+      "ext": "png",
+      "size_kb": 710.8
+    },
+    {
+      "filename": "p36_03_cake_flavors_and_trends.png",
+      "relative_path": "assets/extracted_images/p36_03_cake_flavors_and_trends.png",
+      "page": 36,
+      "topic": "Cake Flavors & Trends",
+      "width": 461,
+      "height": 820,
+      "ext": "png",
+      "size_kb": 799.2
+    },
+    {
+      "filename": "p37_01_cake_flavor_details.png",
+      "relative_path": "assets/extracted_images/p37_01_cake_flavor_details.png",
+      "page": 37,
+      "topic": "Cake Flavor Details",
+      "width": 736,
+      "height": 736,
+      "ext": "png",
+      "size_kb": 1364.0
+    },
+    {
+      "filename": "p38_01_cake_advantages_and_disadvanta.png",
+      "relative_path": "assets/extracted_images/p38_01_cake_advantages_and_disadvanta.png",
+      "page": 38,
+      "topic": "Cake Advantages & Disadvantages",
+      "width": 719,
+      "height": 707,
+      "ext": "png",
+      "size_kb": 1240.1
+    },
+    {
+      "filename": "p38_02_cake_advantages_and_disadvanta.png",
+      "relative_path": "assets/extracted_images/p38_02_cake_advantages_and_disadvanta.png",
+      "page": 38,
+      "topic": "Cake Advantages & Disadvantages",
+      "width": 576,
+      "height": 576,
+      "ext": "png",
+      "size_kb": 524.7
+    },
+    {
+      "filename": "p38_03_cake_advantages_and_disadvanta.png",
+      "relative_path": "assets/extracted_images/p38_03_cake_advantages_and_disadvanta.png",
+      "page": 38,
+      "topic": "Cake Advantages & Disadvantages",
+      "width": 600,
+      "height": 450,
+      "ext": "png",
+      "size_kb": 373.1
+    },
+    {
+      "filename": "p39_01_baked_goods_category.png",
+      "relative_path": "assets/extracted_images/p39_01_baked_goods_category.png",
+      "page": 39,
+      "topic": "Baked Goods Category",
+      "width": 736,
+      "height": 736,
+      "ext": "png",
+      "size_kb": 888.5
+    },
+    {
+      "filename": "p40_01_cinnamon_roll_intro.png",
+      "relative_path": "assets/extracted_images/p40_01_cinnamon_roll_intro.png",
+      "page": 40,
+      "topic": "Cinnamon Roll Intro",
+      "width": 516,
+      "height": 687,
+      "ext": "png",
+      "size_kb": 442.3
+    },
+    {
+      "filename": "p40_02_cinnamon_roll_intro.png",
+      "relative_path": "assets/extracted_images/p40_02_cinnamon_roll_intro.png",
+      "page": 40,
+      "topic": "Cinnamon Roll Intro",
+      "width": 516,
+      "height": 687,
+      "ext": "png",
+      "size_kb": 392.0
+    },
+    {
+      "filename": "p41_01_cinnamon_roll_pros_and_cons.png",
+      "relative_path": "assets/extracted_images/p41_01_cinnamon_roll_pros_and_cons.png",
+      "page": 41,
+      "topic": "Cinnamon Roll Pros & Cons",
+      "width": 630,
+      "height": 840,
+      "ext": "png",
+      "size_kb": 893.0
+    },
+    {
+      "filename": "p42_01_cookie_overview.png",
+      "relative_path": "assets/extracted_images/p42_01_cookie_overview.png",
+      "page": 42,
+      "topic": "Cookie Overview",
+      "width": 600,
+      "height": 840,
+      "ext": "png",
+      "size_kb": 1075.1
+    },
+    {
+      "filename": "p42_02_cookie_overview.png",
+      "relative_path": "assets/extracted_images/p42_02_cookie_overview.png",
+      "page": 42,
+      "topic": "Cookie Overview",
+      "width": 441,
+      "height": 428,
+      "ext": "png",
+      "size_kb": 469.4
+    },
+    {
+      "filename": "p43_01_egg_tart_overview.png",
+      "relative_path": "assets/extracted_images/p43_01_egg_tart_overview.png",
+      "page": 43,
+      "topic": "Egg Tart Overview",
+      "width": 600,
+      "height": 600,
+      "ext": "png",
+      "size_kb": 777.8
+    },
+    {
+      "filename": "p43_02_egg_tart_overview.png",
+      "relative_path": "assets/extracted_images/p43_02_egg_tart_overview.png",
+      "page": 43,
+      "topic": "Egg Tart Overview",
+      "width": 442,
+      "height": 720,
+      "ext": "png",
+      "size_kb": 148.6
+    },
+    {
+      "filename": "p44_01_croissant_intro.png",
+      "relative_path": "assets/extracted_images/p44_01_croissant_intro.png",
+      "page": 44,
+      "topic": "Croissant Intro",
+      "width": 648,
+      "height": 495,
+      "ext": "png",
+      "size_kb": 559.4
+    },
+    {
+      "filename": "p44_02_croissant_intro.png",
+      "relative_path": "assets/extracted_images/p44_02_croissant_intro.png",
+      "page": 44,
+      "topic": "Croissant Intro",
+      "width": 516,
+      "height": 687,
+      "ext": "png",
+      "size_kb": 474.7
+    },
+    {
+      "filename": "p45_01_croissant_details.png",
+      "relative_path": "assets/extracted_images/p45_01_croissant_details.png",
+      "page": 45,
+      "topic": "Croissant Details",
+      "width": 640,
+      "height": 800,
+      "ext": "png",
+      "size_kb": 813.7
+    },
+    {
+      "filename": "p48_01_brand_origin___why_wishes.png",
+      "relative_path": "assets/extracted_images/p48_01_brand_origin___why_wishes.png",
+      "page": 48,
+      "topic": "Brand Origin - Why Wishes",
+      "width": 519,
+      "height": 519,
+      "ext": "png",
+      "size_kb": 624.2
+    },
+    {
+      "filename": "p57_01_business_strategy___online_and.png",
+      "relative_path": "assets/extracted_images/p57_01_business_strategy___online_and.png",
+      "page": 57,
+      "topic": "Business Strategy - Online & Offline",
+      "width": 210,
+      "height": 210,
+      "ext": "png",
+      "size_kb": 57.1
+    },
+    {
+      "filename": "p57_02_business_strategy___online_and.png",
+      "relative_path": "assets/extracted_images/p57_02_business_strategy___online_and.png",
+      "page": 57,
+      "topic": "Business Strategy - Online & Offline",
+      "width": 333,
+      "height": 333,
+      "ext": "png",
+      "size_kb": 17.6
+    },
+    {
+      "filename": "p57_03_business_strategy___online_and.png",
+      "relative_path": "assets/extracted_images/p57_03_business_strategy___online_and.png",
+      "page": 57,
+      "topic": "Business Strategy - Online & Offline",
+      "width": 313,
+      "height": 313,
+      "ext": "png",
+      "size_kb": 12.5
+    },
+    {
+      "filename": "p57_04_business_strategy___online_and.png",
+      "relative_path": "assets/extracted_images/p57_04_business_strategy___online_and.png",
+      "page": 57,
+      "topic": "Business Strategy - Online & Offline",
+      "width": 600,
+      "height": 399,
+      "ext": "png",
+      "size_kb": 564.8
+    },
+    {
+      "filename": "p58_01_product_line___celebration_cak.png",
+      "relative_path": "assets/extracted_images/p58_01_product_line___celebration_cak.png",
+      "page": 58,
+      "topic": "Product Line - Celebration Cakes & Daily Baked Goods",
+      "width": 589,
+      "height": 576,
+      "ext": "png",
+      "size_kb": 459.6
+    },
+    {
+      "filename": "p58_02_product_line___celebration_cak.png",
+      "relative_path": "assets/extracted_images/p58_02_product_line___celebration_cak.png",
+      "page": 58,
+      "topic": "Product Line - Celebration Cakes & Daily Baked Goods",
+      "width": 589,
+      "height": 883,
+      "ext": "png",
+      "size_kb": 975.5
+    },
+    {
+      "filename": "p59_01_celebration_cakes___big_and_sm.png",
+      "relative_path": "assets/extracted_images/p59_01_celebration_cakes___big_and_sm.png",
+      "page": 59,
+      "topic": "Celebration Cakes - Big & Small",
+      "width": 662,
+      "height": 623,
+      "ext": "png",
+      "size_kb": 564.7
+    },
+    {
+      "filename": "p60_01_daily_baked_goods___cinnamon_r.png",
+      "relative_path": "assets/extracted_images/p60_01_daily_baked_goods___cinnamon_r.png",
+      "page": 60,
+      "topic": "Daily Baked Goods - Cinnamon Roll, Cookie, Tart, Croissant",
+      "width": 663,
+      "height": 883,
+      "ext": "png",
+      "size_kb": 1249.7
+    },
+    {
+      "filename": "p61_01_product___cinnamon_roll_pricin.png",
+      "relative_path": "assets/extracted_images/p61_01_product___cinnamon_roll_pricin.png",
+      "page": 61,
+      "topic": "Product - Cinnamon Roll Pricing",
+      "width": 595,
+      "height": 834,
+      "ext": "png",
+      "size_kb": 1219.1
+    },
+    {
+      "filename": "p62_01_product___cookie_pricing.png",
+      "relative_path": "assets/extracted_images/p62_01_product___cookie_pricing.png",
+      "page": 62,
+      "topic": "Product - Cookie Pricing",
+      "width": 588,
+      "height": 570,
+      "ext": "png",
+      "size_kb": 801.8
+    },
+    {
+      "filename": "p63_01_product___egg_tart_pricing.png",
+      "relative_path": "assets/extracted_images/p63_01_product___egg_tart_pricing.png",
+      "page": 63,
+      "topic": "Product - Egg Tart Pricing",
+      "width": 576,
+      "height": 768,
+      "ext": "png",
+      "size_kb": 1147.4
+    },
+    {
+      "filename": "p64_01_product___croissant_pricing.png",
+      "relative_path": "assets/extracted_images/p64_01_product___croissant_pricing.png",
+      "page": 64,
+      "topic": "Product - Croissant Pricing",
+      "width": 516,
+      "height": 687,
+      "ext": "png",
+      "size_kb": 474.7
+    },
+    {
+      "filename": "p66_01_art_direction___concept_and_st.png",
+      "relative_path": "assets/extracted_images/p66_01_art_direction___concept_and_st.png",
+      "page": 66,
+      "topic": "Art Direction - Concept & Style Moodboard",
+      "width": 442,
+      "height": 663,
+      "ext": "png",
+      "size_kb": 599.3
+    },
+    {
+      "filename": "p66_02_art_direction___concept_and_st.png",
+      "relative_path": "assets/extracted_images/p66_02_art_direction___concept_and_st.png",
+      "page": 66,
+      "topic": "Art Direction - Concept & Style Moodboard",
+      "width": 480,
+      "height": 687,
+      "ext": "png",
+      "size_kb": 636.1
+    },
+    {
+      "filename": "p66_03_art_direction___concept_and_st.png",
+      "relative_path": "assets/extracted_images/p66_03_art_direction___concept_and_st.png",
+      "page": 66,
+      "topic": "Art Direction - Concept & Style Moodboard",
+      "width": 442,
+      "height": 663,
+      "ext": "png",
+      "size_kb": 540.5
+    },
+    {
+      "filename": "p66_04_art_direction___concept_and_st.png",
+      "relative_path": "assets/extracted_images/p66_04_art_direction___concept_and_st.png",
+      "page": 66,
+      "topic": "Art Direction - Concept & Style Moodboard",
+      "width": 442,
+      "height": 663,
+      "ext": "png",
+      "size_kb": 626.9
+    },
+    {
+      "filename": "p66_05_art_direction___concept_and_st.png",
+      "relative_path": "assets/extracted_images/p66_05_art_direction___concept_and_st.png",
+      "page": 66,
+      "topic": "Art Direction - Concept & Style Moodboard",
+      "width": 588,
+      "height": 392,
+      "ext": "png",
+      "size_kb": 317.1
+    },
+    {
+      "filename": "p66_06_art_direction___concept_and_st.png",
+      "relative_path": "assets/extracted_images/p66_06_art_direction___concept_and_st.png",
+      "page": 66,
+      "topic": "Art Direction - Concept & Style Moodboard",
+      "width": 515,
+      "height": 343,
+      "ext": "png",
+      "size_kb": 307.6
+    },
+    {
+      "filename": "p67_01_art_direction___logo_design.png",
+      "relative_path": "assets/extracted_images/p67_01_art_direction___logo_design.png",
+      "page": 67,
+      "topic": "Art Direction - Logo Design",
+      "width": 500,
+      "height": 666,
+      "ext": "png",
+      "size_kb": 165.6
+    },
+    {
+      "filename": "p67_02_art_direction___logo_design.png",
+      "relative_path": "assets/extracted_images/p67_02_art_direction___logo_design.png",
+      "page": 67,
+      "topic": "Art Direction - Logo Design",
+      "width": 720,
+      "height": 900,
+      "ext": "png",
+      "size_kb": 696.5
+    },
+    {
+      "filename": "p67_03_art_direction___logo_design.png",
+      "relative_path": "assets/extracted_images/p67_03_art_direction___logo_design.png",
+      "page": 67,
+      "topic": "Art Direction - Logo Design",
+      "width": 736,
+      "height": 736,
+      "ext": "png",
+      "size_kb": 490.2
+    },
+    {
+      "filename": "p67_04_art_direction___logo_design.png",
+      "relative_path": "assets/extracted_images/p67_04_art_direction___logo_design.png",
+      "page": 67,
+      "topic": "Art Direction - Logo Design",
+      "width": 736,
+      "height": 736,
+      "ext": "png",
+      "size_kb": 856.8
+    },
+    {
+      "filename": "p68_01_art_direction___photography_di.png",
+      "relative_path": "assets/extracted_images/p68_01_art_direction___photography_di.png",
+      "page": 68,
+      "topic": "Art Direction - Photography Direction",
+      "width": 368,
+      "height": 552,
+      "ext": "png",
+      "size_kb": 443.2
+    },
+    {
+      "filename": "p68_02_art_direction___photography_di.png",
+      "relative_path": "assets/extracted_images/p68_02_art_direction___photography_di.png",
+      "page": 68,
+      "topic": "Art Direction - Photography Direction",
+      "width": 442,
+      "height": 552,
+      "ext": "png",
+      "size_kb": 351.8
+    },
+    {
+      "filename": "p68_03_art_direction___photography_di.png",
+      "relative_path": "assets/extracted_images/p68_03_art_direction___photography_di.png",
+      "page": 68,
+      "topic": "Art Direction - Photography Direction",
+      "width": 442,
+      "height": 552,
+      "ext": "png",
+      "size_kb": 420.8
+    },
+    {
+      "filename": "p68_04_art_direction___photography_di.png",
+      "relative_path": "assets/extracted_images/p68_04_art_direction___photography_di.png",
+      "page": 68,
+      "topic": "Art Direction - Photography Direction",
+      "width": 516,
+      "height": 768,
+      "ext": "png",
+      "size_kb": 780.4
+    },
+    {
+      "filename": "p68_05_art_direction___photography_di.png",
+      "relative_path": "assets/extracted_images/p68_05_art_direction___photography_di.png",
+      "page": 68,
+      "topic": "Art Direction - Photography Direction",
+      "width": 662,
+      "height": 438,
+      "ext": "png",
+      "size_kb": 425.0
+    },
+    {
+      "filename": "p68_06_art_direction___photography_di.png",
+      "relative_path": "assets/extracted_images/p68_06_art_direction___photography_di.png",
+      "page": 68,
+      "topic": "Art Direction - Photography Direction",
+      "width": 600,
+      "height": 336,
+      "ext": "png",
+      "size_kb": 330.3
+    },
+    {
+      "filename": "p69_01_art_direction___website_mockup.png",
+      "relative_path": "assets/extracted_images/p69_01_art_direction___website_mockup.png",
+      "page": 69,
+      "topic": "Art Direction - Website Mockup",
+      "width": 1136,
+      "height": 572,
+      "ext": "png",
+      "size_kb": 375.4
+    },
+    {
+      "filename": "p69_02_art_direction___website_mockup.png",
+      "relative_path": "assets/extracted_images/p69_02_art_direction___website_mockup.png",
+      "page": 69,
+      "topic": "Art Direction - Website Mockup",
+      "width": 1130,
+      "height": 578,
+      "ext": "png",
+      "size_kb": 511.9
+    },
+    {
+      "filename": "p71_01_brand_collateral___stationery_.jpeg",
+      "relative_path": "assets/extracted_images/p71_01_brand_collateral___stationery_.jpeg",
+      "page": 71,
+      "topic": "Brand Collateral - Stationery Set",
+      "width": 516,
+      "height": 916,
+      "ext": "jpeg",
+      "size_kb": 224.1
+    },
+    {
+      "filename": "p71_02_brand_collateral___stationery_.jpeg",
+      "relative_path": "assets/extracted_images/p71_02_brand_collateral___stationery_.jpeg",
+      "page": 71,
+      "topic": "Brand Collateral - Stationery Set",
+      "width": 368,
+      "height": 491,
+      "ext": "jpeg",
+      "size_kb": 47.0
+    },
+    {
+      "filename": "p71_03_brand_collateral___stationery_.jpeg",
+      "relative_path": "assets/extracted_images/p71_03_brand_collateral___stationery_.jpeg",
+      "page": 71,
+      "topic": "Brand Collateral - Stationery Set",
+      "width": 531,
+      "height": 1266,
+      "ext": "jpeg",
+      "size_kb": 300.2
+    },
+    {
+      "filename": "p71_04_brand_collateral___stationery_.jpeg",
+      "relative_path": "assets/extracted_images/p71_04_brand_collateral___stationery_.jpeg",
+      "page": 71,
+      "topic": "Brand Collateral - Stationery Set",
+      "width": 480,
+      "height": 600,
+      "ext": "jpeg",
+      "size_kb": 61.0
+    },
+    {
+      "filename": "p72_01_brand_collateral___staff_unifo.png",
+      "relative_path": "assets/extracted_images/p72_01_brand_collateral___staff_unifo.png",
+      "page": 72,
+      "topic": "Brand Collateral - Staff Uniform",
+      "width": 360,
+      "height": 559,
+      "ext": "png",
+      "size_kb": 325.9
+    },
+    {
+      "filename": "p72_02_brand_collateral___staff_unifo.png",
+      "relative_path": "assets/extracted_images/p72_02_brand_collateral___staff_unifo.png",
+      "page": 72,
+      "topic": "Brand Collateral - Staff Uniform",
+      "width": 480,
+      "height": 736,
+      "ext": "png",
+      "size_kb": 821.1
+    },
+    {
+      "filename": "p72_03_brand_collateral___staff_unifo.png",
+      "relative_path": "assets/extracted_images/p72_03_brand_collateral___staff_unifo.png",
+      "page": 72,
+      "topic": "Brand Collateral - Staff Uniform",
+      "width": 516,
+      "height": 687,
+      "ext": "png",
+      "size_kb": 700.5
+    },
+    {
+      "filename": "p72_04_brand_collateral___staff_unifo.png",
+      "relative_path": "assets/extracted_images/p72_04_brand_collateral___staff_unifo.png",
+      "page": 72,
+      "topic": "Brand Collateral - Staff Uniform",
+      "width": 467,
+      "height": 700,
+      "ext": "png",
+      "size_kb": 269.0
+    },
+    {
+      "filename": "p74_01_packaging_system.png",
+      "relative_path": "assets/extracted_images/p74_01_packaging_system.png",
+      "page": 74,
+      "topic": "Packaging System",
+      "width": 480,
+      "height": 480,
+      "ext": "png",
+      "size_kb": 152.0
+    },
+    {
+      "filename": "p74_02_packaging_system.png",
+      "relative_path": "assets/extracted_images/p74_02_packaging_system.png",
+      "page": 74,
+      "topic": "Packaging System",
+      "width": 589,
+      "height": 785,
+      "ext": "png",
+      "size_kb": 386.9
+    },
+    {
+      "filename": "p74_03_packaging_system.png",
+      "relative_path": "assets/extracted_images/p74_03_packaging_system.png",
+      "page": 74,
+      "topic": "Packaging System",
+      "width": 516,
+      "height": 687,
+      "ext": "png",
+      "size_kb": 362.6
+    },
+    {
+      "filename": "p74_04_packaging_system.png",
+      "relative_path": "assets/extracted_images/p74_04_packaging_system.png",
+      "page": 74,
+      "topic": "Packaging System",
+      "width": 444,
+      "height": 335,
+      "ext": "png",
+      "size_kb": 291.6
+    },
+    {
+      "filename": "p74_05_packaging_system.png",
+      "relative_path": "assets/extracted_images/p74_05_packaging_system.png",
+      "page": 74,
+      "topic": "Packaging System",
+      "width": 442,
+      "height": 336,
+      "ext": "png",
+      "size_kb": 170.8
+    },
+    {
+      "filename": "p74_06_packaging_system.png",
+      "relative_path": "assets/extracted_images/p74_06_packaging_system.png",
+      "page": 74,
+      "topic": "Packaging System",
+      "width": 515,
+      "height": 675,
+      "ext": "png",
+      "size_kb": 558.4
+    },
+    {
+      "filename": "p76_01_brand_collateral___placemat.png",
+      "relative_path": "assets/extracted_images/p76_01_brand_collateral___placemat.png",
+      "page": 76,
+      "topic": "Brand Collateral - Placemat",
+      "width": 720,
+      "height": 960,
+      "ext": "png",
+      "size_kb": 1141.8
+    },
+    {
+      "filename": "p76_02_brand_collateral___placemat.png",
+      "relative_path": "assets/extracted_images/p76_02_brand_collateral___placemat.png",
+      "page": 76,
+      "topic": "Brand Collateral - Placemat",
+      "width": 368,
+      "height": 552,
+      "ext": "png",
+      "size_kb": 423.1
+    },
+    {
+      "filename": "p76_03_brand_collateral___placemat.png",
+      "relative_path": "assets/extracted_images/p76_03_brand_collateral___placemat.png",
+      "page": 76,
+      "topic": "Brand Collateral - Placemat",
+      "width": 442,
+      "height": 442,
+      "ext": "png",
+      "size_kb": 306.7
+    },
+    {
+      "filename": "p77_01_brand_collateral___placemat_al.png",
+      "relative_path": "assets/extracted_images/p77_01_brand_collateral___placemat_al.png",
+      "page": 77,
+      "topic": "Brand Collateral - Placemat Alt",
+      "width": 720,
+      "height": 960,
+      "ext": "png",
+      "size_kb": 1141.8
+    },
+    {
+      "filename": "p78_01_brand_collateral___napkin.png",
+      "relative_path": "assets/extracted_images/p78_01_brand_collateral___napkin.png",
+      "page": 78,
+      "topic": "Brand Collateral - Napkin",
+      "width": 560,
+      "height": 747,
+      "ext": "png",
+      "size_kb": 719.1
+    },
+    {
+      "filename": "p78_02_brand_collateral___napkin.png",
+      "relative_path": "assets/extracted_images/p78_02_brand_collateral___napkin.png",
+      "page": 78,
+      "topic": "Brand Collateral - Napkin",
+      "width": 516,
+      "height": 773,
+      "ext": "png",
+      "size_kb": 850.9
+    },
+    {
+      "filename": "p78_03_brand_collateral___napkin.png",
+      "relative_path": "assets/extracted_images/p78_03_brand_collateral___napkin.png",
+      "page": 78,
+      "topic": "Brand Collateral - Napkin",
+      "width": 589,
+      "height": 589,
+      "ext": "png",
+      "size_kb": 502.6
+    },
+    {
+      "filename": "p80_01_marketing___brochure_design.png",
+      "relative_path": "assets/extracted_images/p80_01_marketing___brochure_design.png",
+      "page": 80,
+      "topic": "Marketing - Brochure Design",
+      "width": 442,
+      "height": 663,
+      "ext": "png",
+      "size_kb": 402.2
+    },
+    {
+      "filename": "p80_02_marketing___brochure_design.png",
+      "relative_path": "assets/extracted_images/p80_02_marketing___brochure_design.png",
+      "page": 80,
+      "topic": "Marketing - Brochure Design",
+      "width": 442,
+      "height": 663,
+      "ext": "png",
+      "size_kb": 504.5
+    },
+    {
+      "filename": "p80_03_marketing___brochure_design.png",
+      "relative_path": "assets/extracted_images/p80_03_marketing___brochure_design.png",
+      "page": 80,
+      "topic": "Marketing - Brochure Design",
+      "width": 658,
+      "height": 428,
+      "ext": "png",
+      "size_kb": 38.4
+    },
+    {
+      "filename": "p83_01_merchandise___enamel_pins_and_.png",
+      "relative_path": "assets/extracted_images/p83_01_merchandise___enamel_pins_and_.png",
+      "page": 83,
+      "topic": "Merchandise - Enamel Pins & Badges",
+      "width": 864,
+      "height": 864,
+      "ext": "png",
+      "size_kb": 1315.2
+    },
+    {
+      "filename": "p83_02_merchandise___enamel_pins_and_.png",
+      "relative_path": "assets/extracted_images/p83_02_merchandise___enamel_pins_and_.png",
+      "page": 83,
+      "topic": "Merchandise - Enamel Pins & Badges",
+      "width": 864,
+      "height": 674,
+      "ext": "png",
+      "size_kb": 1030.0
+    },
+    {
+      "filename": "p83_03_merchandise___enamel_pins_and_.png",
+      "relative_path": "assets/extracted_images/p83_03_merchandise___enamel_pins_and_.png",
+      "page": 83,
+      "topic": "Merchandise - Enamel Pins & Badges",
+      "width": 700,
+      "height": 756,
+      "ext": "png",
+      "size_kb": 490.0
+    },
+    {
+      "filename": "p84_01_merchandise___ribbons_and_pack.png",
+      "relative_path": "assets/extracted_images/p84_01_merchandise___ribbons_and_pack.png",
+      "page": 84,
+      "topic": "Merchandise - Ribbons & Packaging Accessories",
+      "width": 564,
+      "height": 600,
+      "ext": "png",
+      "size_kb": 682.3
+    },
+    {
+      "filename": "p84_02_merchandise___ribbons_and_pack.png",
+      "relative_path": "assets/extracted_images/p84_02_merchandise___ribbons_and_pack.png",
+      "page": 84,
+      "topic": "Merchandise - Ribbons & Packaging Accessories",
+      "width": 720,
+      "height": 540,
+      "ext": "png",
+      "size_kb": 628.5
+    },
+    {
+      "filename": "p84_03_merchandise___ribbons_and_pack.png",
+      "relative_path": "assets/extracted_images/p84_03_merchandise___ribbons_and_pack.png",
+      "page": 84,
+      "topic": "Merchandise - Ribbons & Packaging Accessories",
+      "width": 576,
+      "height": 768,
+      "ext": "png",
+      "size_kb": 328.1
+    },
+    {
+      "filename": "p84_04_merchandise___ribbons_and_pack.png",
+      "relative_path": "assets/extracted_images/p84_04_merchandise___ribbons_and_pack.png",
+      "page": 84,
+      "topic": "Merchandise - Ribbons & Packaging Accessories",
+      "width": 576,
+      "height": 768,
+      "ext": "png",
+      "size_kb": 756.6
+    },
+    {
+      "filename": "p84_05_merchandise___ribbons_and_pack.png",
+      "relative_path": "assets/extracted_images/p84_05_merchandise___ribbons_and_pack.png",
+      "page": 84,
+      "topic": "Merchandise - Ribbons & Packaging Accessories",
+      "width": 576,
+      "height": 768,
+      "ext": "png",
+      "size_kb": 401.0
+    },
+    {
+      "filename": "p84_06_merchandise___ribbons_and_pack.png",
+      "relative_path": "assets/extracted_images/p84_06_merchandise___ribbons_and_pack.png",
+      "page": 84,
+      "topic": "Merchandise - Ribbons & Packaging Accessories",
+      "width": 576,
+      "height": 768,
+      "ext": "png",
+      "size_kb": 400.5
+    },
+    {
+      "filename": "p84_07_merchandise___ribbons_and_pack.png",
+      "relative_path": "assets/extracted_images/p84_07_merchandise___ribbons_and_pack.png",
+      "page": 84,
+      "topic": "Merchandise - Ribbons & Packaging Accessories",
+      "width": 540,
+      "height": 721,
+      "ext": "png",
+      "size_kb": 223.8
+    },
+    {
+      "filename": "p84_08_merchandise___ribbons_and_pack.png",
+      "relative_path": "assets/extracted_images/p84_08_merchandise___ribbons_and_pack.png",
+      "page": 84,
+      "topic": "Merchandise - Ribbons & Packaging Accessories",
+      "width": 720,
+      "height": 960,
+      "ext": "png",
+      "size_kb": 1881.7
+    },
+    {
+      "filename": "p91_01_ending_slide___thanks_for_list.png",
+      "relative_path": "assets/extracted_images/p91_01_ending_slide___thanks_for_list.png",
+      "page": 91,
+      "topic": "Ending Slide - Thanks for Listening",
+      "width": 325,
+      "height": 127,
+      "ext": "png",
+      "size_kb": 0.2
+    },
+    {
+      "filename": "p91_02_ending_slide___thanks_for_list.png",
+      "relative_path": "assets/extracted_images/p91_02_ending_slide___thanks_for_list.png",
+      "page": 91,
+      "topic": "Ending Slide - Thanks for Listening",
+      "width": 412,
+      "height": 184,
+      "ext": "png",
+      "size_kb": 22.6
+    },
+    {
+      "filename": "p94_01_customer_profile_summary.png",
+      "relative_path": "assets/extracted_images/p94_01_customer_profile_summary.png",
+      "page": 94,
+      "topic": "Customer Profile Summary",
+      "width": 736,
+      "height": 552,
+      "ext": "png",
+      "size_kb": 844.5
+    },
+    {
+      "filename": "p96_01_wishes_project_overview___arch.png",
+      "relative_path": "assets/extracted_images/p96_01_wishes_project_overview___arch.png",
+      "page": 96,
+      "topic": "Wishes Project Overview - Archetype & Color Palette",
+      "width": 960,
+      "height": 1068,
+      "ext": "png",
+      "size_kb": 1741.7
+    },
+    {
+      "filename": "p96_02_wishes_project_overview___arch.png",
+      "relative_path": "assets/extracted_images/p96_02_wishes_project_overview___arch.png",
+      "page": 96,
+      "topic": "Wishes Project Overview - Archetype & Color Palette",
+      "width": 368,
+      "height": 460,
+      "ext": "png",
+      "size_kb": 367.2
+    },
+    {
+      "filename": "p96_03_wishes_project_overview___arch.png",
+      "relative_path": "assets/extracted_images/p96_03_wishes_project_overview___arch.png",
+      "page": 96,
+      "topic": "Wishes Project Overview - Archetype & Color Palette",
+      "width": 349,
+      "height": 480,
+      "ext": "png",
+      "size_kb": 271.2
+    },
+    {
+      "filename": "p96_04_wishes_project_overview___arch.png",
+      "relative_path": "assets/extracted_images/p96_04_wishes_project_overview___arch.png",
+      "page": 96,
+      "topic": "Wishes Project Overview - Archetype & Color Palette",
+      "width": 516,
+      "height": 945,
+      "ext": "png",
+      "size_kb": 670.7
+    },
+    {
+      "filename": "p97_01_interview_thy___graphic_design.png",
+      "relative_path": "assets/extracted_images/p97_01_interview_thy___graphic_design.png",
+      "page": 97,
+      "topic": "Interview Thy - Graphic Designer Painpoints",
+      "width": 527,
+      "height": 627,
+      "ext": "png",
+      "size_kb": 672.3
+    },
+    {
+      "filename": "p98_01_interview_hang___flight_attend.png",
+      "relative_path": "assets/extracted_images/p98_01_interview_hang___flight_attend.png",
+      "page": 98,
+      "topic": "Interview Hang - Flight Attendant Painpoints",
+      "width": 728,
+      "height": 1294,
+      "ext": "png",
+      "size_kb": 1196.0
+    },
+    {
+      "filename": "p99_01_brand_positioning_map___whimsi.png",
+      "relative_path": "assets/extracted_images/p99_01_brand_positioning_map___whimsi.png",
+      "page": 99,
+      "topic": "Brand Positioning Map - Whimsical Playful Artisanal",
+      "width": 496,
+      "height": 98,
+      "ext": "png",
+      "size_kb": 29.5
+    },
+    {
+      "filename": "p99_02_brand_positioning_map___whimsi.png",
+      "relative_path": "assets/extracted_images/p99_02_brand_positioning_map___whimsi.png",
+      "page": 99,
+      "topic": "Brand Positioning Map - Whimsical Playful Artisanal",
+      "width": 261,
+      "height": 261,
+      "ext": "png",
+      "size_kb": 55.9
+    },
+    {
+      "filename": "p99_03_brand_positioning_map___whimsi.png",
+      "relative_path": "assets/extracted_images/p99_03_brand_positioning_map___whimsi.png",
+      "page": 99,
+      "topic": "Brand Positioning Map - Whimsical Playful Artisanal",
+      "width": 400,
+      "height": 400,
+      "ext": "png",
+      "size_kb": 13.7
+    },
+    {
+      "filename": "p99_04_brand_positioning_map___whimsi.png",
+      "relative_path": "assets/extracted_images/p99_04_brand_positioning_map___whimsi.png",
+      "page": 99,
+      "topic": "Brand Positioning Map - Whimsical Playful Artisanal",
+      "width": 224,
+      "height": 224,
+      "ext": "png",
+      "size_kb": 27.2
+    },
+    {
+      "filename": "p99_05_brand_positioning_map___whimsi.png",
+      "relative_path": "assets/extracted_images/p99_05_brand_positioning_map___whimsi.png",
+      "page": 99,
+      "topic": "Brand Positioning Map - Whimsical Playful Artisanal",
+      "width": 473,
+      "height": 473,
+      "ext": "png",
+      "size_kb": 80.6
+    },
+    {
+      "filename": "p99_06_brand_positioning_map___whimsi.png",
+      "relative_path": "assets/extracted_images/p99_06_brand_positioning_map___whimsi.png",
+      "page": 99,
+      "topic": "Brand Positioning Map - Whimsical Playful Artisanal",
+      "width": 352,
+      "height": 352,
+      "ext": "png",
+      "size_kb": 20.8
+    },
+    {
+      "filename": "p99_07_brand_positioning_map___whimsi.png",
+      "relative_path": "assets/extracted_images/p99_07_brand_positioning_map___whimsi.png",
+      "page": 99,
+      "topic": "Brand Positioning Map - Whimsical Playful Artisanal",
+      "width": 410,
+      "height": 371,
+      "ext": "png",
+      "size_kb": 58.6
+    }
+  ],
+  "rendered_pages": [
+    {
+      "filename": "slide_p01_cover_and_project_info.png",
+      "relative_path": "assets/rendered_pages/slide_p01_cover_and_project_info.png",
+      "page": 1,
+      "topic": "Cover & Project Info",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p06_wishes_solution.png",
+      "relative_path": "assets/rendered_pages/slide_p06_wishes_solution.png",
+      "page": 6,
+      "topic": "Wishes Solution",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p07_pastry_definition_and_concept.png",
+      "relative_path": "assets/rendered_pages/slide_p07_pastry_definition_and_concept.png",
+      "page": 7,
+      "topic": "Pastry Definition & Concept",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p13_boutique_pastry_positioning.png",
+      "relative_path": "assets/rendered_pages/slide_p13_boutique_pastry_positioning.png",
+      "page": 13,
+      "topic": "Boutique Pastry Positioning",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p48_brand_origin___why_wishes.png",
+      "relative_path": "assets/rendered_pages/slide_p48_brand_origin___why_wishes.png",
+      "page": 48,
+      "topic": "Brand Origin - Why Wishes",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p50_positioning_statement.png",
+      "relative_path": "assets/rendered_pages/slide_p50_positioning_statement.png",
+      "page": 50,
+      "topic": "Positioning Statement",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p52_core_values.png",
+      "relative_path": "assets/rendered_pages/slide_p52_core_values.png",
+      "page": 52,
+      "topic": "Core Values",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p53_brand_personality___playful_and_war.png",
+      "relative_path": "assets/rendered_pages/slide_p53_brand_personality___playful_and_war.png",
+      "page": 53,
+      "topic": "Brand Personality - Playful & Warm",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p54_usps___personal_craving_and_moments.png",
+      "relative_path": "assets/rendered_pages/slide_p54_usps___personal_craving_and_moments.png",
+      "page": 54,
+      "topic": "USPs - Personal Craving & Moments of Joy",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p58_product_line___celebration_cakes_an.png",
+      "relative_path": "assets/rendered_pages/slide_p58_product_line___celebration_cakes_an.png",
+      "page": 58,
+      "topic": "Product Line - Celebration Cakes & Daily Baked Goods",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p59_celebration_cakes___big_and_small.png",
+      "relative_path": "assets/rendered_pages/slide_p59_celebration_cakes___big_and_small.png",
+      "page": 59,
+      "topic": "Celebration Cakes - Big & Small",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p60_daily_baked_goods___cinnamon_roll_c.png",
+      "relative_path": "assets/rendered_pages/slide_p60_daily_baked_goods___cinnamon_roll_c.png",
+      "page": 60,
+      "topic": "Daily Baked Goods - Cinnamon Roll, Cookie, Tart, Croissant",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p66_art_direction___concept_and_style_m.png",
+      "relative_path": "assets/rendered_pages/slide_p66_art_direction___concept_and_style_m.png",
+      "page": 66,
+      "topic": "Art Direction - Concept & Style Moodboard",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p67_art_direction___logo_design.png",
+      "relative_path": "assets/rendered_pages/slide_p67_art_direction___logo_design.png",
+      "page": 67,
+      "topic": "Art Direction - Logo Design",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p68_art_direction___photography_directi.png",
+      "relative_path": "assets/rendered_pages/slide_p68_art_direction___photography_directi.png",
+      "page": 68,
+      "topic": "Art Direction - Photography Direction",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p69_art_direction___website_mockup.png",
+      "relative_path": "assets/rendered_pages/slide_p69_art_direction___website_mockup.png",
+      "page": 69,
+      "topic": "Art Direction - Website Mockup",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p71_brand_collateral___stationery_set.png",
+      "relative_path": "assets/rendered_pages/slide_p71_brand_collateral___stationery_set.png",
+      "page": 71,
+      "topic": "Brand Collateral - Stationery Set",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p72_brand_collateral___staff_uniform.png",
+      "relative_path": "assets/rendered_pages/slide_p72_brand_collateral___staff_uniform.png",
+      "page": 72,
+      "topic": "Brand Collateral - Staff Uniform",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p74_packaging_system.png",
+      "relative_path": "assets/rendered_pages/slide_p74_packaging_system.png",
+      "page": 74,
+      "topic": "Packaging System",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p76_brand_collateral___placemat.png",
+      "relative_path": "assets/rendered_pages/slide_p76_brand_collateral___placemat.png",
+      "page": 76,
+      "topic": "Brand Collateral - Placemat",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p78_brand_collateral___napkin.png",
+      "relative_path": "assets/rendered_pages/slide_p78_brand_collateral___napkin.png",
+      "page": 78,
+      "topic": "Brand Collateral - Napkin",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p80_marketing___brochure_design.png",
+      "relative_path": "assets/rendered_pages/slide_p80_marketing___brochure_design.png",
+      "page": 80,
+      "topic": "Marketing - Brochure Design",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p83_merchandise___enamel_pins_and_badge.png",
+      "relative_path": "assets/rendered_pages/slide_p83_merchandise___enamel_pins_and_badge.png",
+      "page": 83,
+      "topic": "Merchandise - Enamel Pins & Badges",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p84_merchandise___ribbons_and_packaging.png",
+      "relative_path": "assets/rendered_pages/slide_p84_merchandise___ribbons_and_packaging.png",
+      "page": 84,
+      "topic": "Merchandise - Ribbons & Packaging Accessories",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p85_merchandise___birthday_hat_and_crow.png",
+      "relative_path": "assets/rendered_pages/slide_p85_merchandise___birthday_hat_and_crow.png",
+      "page": 85,
+      "topic": "Merchandise - Birthday Hat & Crown",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p95_survey___embracing_imperfection_and.png",
+      "relative_path": "assets/rendered_pages/slide_p95_survey___embracing_imperfection_and.png",
+      "page": 95,
+      "topic": "Survey - Embracing Imperfection & Whimsical",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p96_wishes_project_overview___archetype.png",
+      "relative_path": "assets/rendered_pages/slide_p96_wishes_project_overview___archetype.png",
+      "page": 96,
+      "topic": "Wishes Project Overview - Archetype & Color Palette",
+      "width": 3000,
+      "height": 1688
+    },
+    {
+      "filename": "slide_p99_brand_positioning_map___whimsical_p.png",
+      "relative_path": "assets/rendered_pages/slide_p99_brand_positioning_map___whimsical_p.png",
+      "page": 99,
+      "topic": "Brand Positioning Map - Whimsical Playful Artisanal",
+      "width": 3000,
+      "height": 1688
+    }
+  ]
+}

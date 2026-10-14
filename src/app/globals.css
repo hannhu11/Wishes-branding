@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-pink: #FFAEC9;
+  --color-blue: #A0C4FF;
+  --color-mint: #BEE3DB;
+  --color-cream: #FFF9E6;
+  --color-chocolate: #4A2E1B;
+  --color-cherry: #FF3366;
+}
+
+/* Custom Smooth Pastel Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #FFF9E6;
+}
+::-webkit-scrollbar-thumb {
+  background: #FFAEC9;
+  border-radius: 9999px;
+  border: 2px solid #FFF9E6;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FF8DA1;
+}
+
+/* Custom Text Selection */
+::selection {
+  background-color: #FFAEC9;
+  color: #4A2E1B;
+}
+
+html, body {
+  background-color: #FFF9E6;
+  color: #4A2E1B;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom font styles */
+.font-serif-swash {
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+}
+
+.font-display-bubbly {
+  font-family: var(--font-display), 'Comfortaa', cursive;
+  font-weight: 700;
+}
+
+/* Glassmorphism Pastel Panel */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 10px 30px -5px rgba(255, 174, 201, 0.25);
+}
+
+.glass-panel-dark {
+  background: rgba(74, 46, 27, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #FFF9E6;
+}
+
+/* Candy Button Glow */
+.candy-btn {
+  background: linear-gradient(135deg, #FFAEC9 0%, #FF8DA1 100%);
+  color: #4A2E1B;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(255, 141, 161, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.6);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.candy-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 25px rgba(255, 141, 161, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.8);
+}
+.candy-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* Striped Boutique Canopy / Awning */
+.awning-stripes {
+  background: repeating-linear-gradient(
+    45deg,
+    #BDE0FE,
+    #BDE0FE 20px,
+    #FFFFFF 20px,
+    #FFFFFF 40px
+  );
+}
+
+/* Noise overlay */
+.bg-noise {
+  background-image: radial-gradient(rgba(74, 46, 27, 0.04) 1px, transparent 0);
+  background-size: 24px 24px;
+}
