@@ -38,7 +38,7 @@ export default function ProposalPresetsDrawer({
                 : "text-wishes-chocolate/70 hover:bg-white"
             }`}
           >
-            Tất cả (8)
+            Tất cả ({PROPOSAL_PRESETS.length})
           </button>
           <button
             onClick={() => setFilterCategory("celebration")}
@@ -48,7 +48,7 @@ export default function ProposalPresetsDrawer({
                 : "text-wishes-chocolate/70 hover:bg-white"
             }`}
           >
-            🎂 Celebration (4)
+            🎂 Celebration ({PROPOSAL_PRESETS.filter((p) => p.category === "celebration").length})
           </button>
           <button
             onClick={() => setFilterCategory("daily")}
@@ -58,7 +58,7 @@ export default function ProposalPresetsDrawer({
                 : "text-wishes-chocolate/70 hover:bg-white"
             }`}
           >
-            🥐 Daily Baked (4)
+            🥐 Daily Baked ({PROPOSAL_PRESETS.filter((p) => p.category === "daily").length})
           </button>
         </div>
       </div>

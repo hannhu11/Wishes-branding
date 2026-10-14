@@ -11,6 +11,10 @@ import {
   ShieldCheck,
   Compass,
   Award,
+  Sparkles,
+  Type,
+  Package,
+  Heart,
 } from "lucide-react";
 import {
   CakeShape,
@@ -19,12 +23,17 @@ import {
   MousseType,
   FrostingFinish,
   PipingStyle,
+  PipingPosition,
   ToppingConfig,
+  AccessoryItem,
+  TypographyState,
   SPONGE_OPTIONS,
   GELEE_OPTIONS,
   MOUSSE_OPTIONS,
   FROSTING_PALETTE,
   PIPING_STYLES,
+  ACCESSORY_CATALOG,
+  FONT_OPTIONS,
 } from "./types";
 
 interface BlueprintModalProps {
@@ -39,7 +48,10 @@ interface BlueprintModalProps {
   frostingColor: string;
   pipingStyle: PipingStyle;
   pipingColor: string;
-  toppings: ToppingConfig;
+  pipingPosition?: PipingPosition;
+  toppings?: ToppingConfig;
+  accessories?: AccessoryItem[];
+  typography?: TypographyState;
   customerName: string;
   wishText: string;
   handwrittenText?: string;
@@ -59,7 +71,10 @@ export default function BakingBlueprintModal({
   frostingColor,
   pipingStyle,
   pipingColor,
+  pipingPosition = "dual-rim",
   toppings,
+  accessories,
+  typography,
   customerName,
   wishText,
   handwrittenText,
@@ -74,14 +89,47 @@ export default function BakingBlueprintModal({
   const colorObj = FROSTING_PALETTE.find((c) => c.hex === frostingColor);
   const pipingObj = PIPING_STYLES.find((p) => p.id === pipingStyle);
 
-  const activeToppingNames: string[] = [];
-  if (toppings.cherry) activeToppingNames.push("Quả Cherry bóng cuống cong");
-  if (toppings.strawberry) activeToppingNames.push("Dâu tây tươi đọng sương");
-  if (toppings.sprinkles) activeToppingNames.push("Kẹo cốm ngọc trai pastel");
-  if (toppings.ribbonBow) activeToppingNames.push("Nơ lụa satin xanh baby (Slide 84)");
-  if (toppings.spiralCandle) activeToppingNames.push("Nến xoắn ốc pastel");
-  if (toppings.crown) activeToppingNames.push("Vương miện giấy sinh nhật (Slide 85)");
-  if (toppings.enamelPin) activeToppingNames.push("Huy hiệu kim loại mạ vàng Enamel Pin (Slide 83)");
+  // Parse accessories
+  const accessoryLines: string[] = [];
+  if (accessories && accessories.length > 0) {
+    accessories.forEach((item) => {
+      const entry = ACCESSORY_CATALOG.find((cat) => cat.type === item.type);
+      const name = entry?.name || item.type;
+      const layoutLabel =
+        item.layout === "center"
+          ? "Tâm bánh"
+          : item.layout === "ring"
+          ? "Vòng tròn rim"
+          : item.layout === "corners"
+          ? "4 góc"
+          : item.layout === "front-arc"
+          ? "Vòng cung mặt trước"
+          : item.layout === "scatter"
+          ? "Rải ngẫu hứng"
+          : "Tùy biến";
+      accessoryLines.push(`${item.count}× ${name} (${layoutLabel})`);
+    });
+  } else if (toppings) {
+    if (toppings.cherry) accessoryLines.push("1× Quả Cherry đỏ bóng cuống cong");
+    if (toppings.strawberry) accessoryLines.push("4× Dâu tây tươi đọng sương");
+    if (toppings.sprinkles) accessoryLines.push("Kẹo cốm ngọc trai pastel rải đều");
+    if (toppings.ribbonBow) accessoryLines.push("1× Nơ lụa satin xanh baby (Slide 84)");
+    if (toppings.spiralCandle) accessoryLines.push("1× Nến xoắn ốc pastel");
+    if (toppings.crown) accessoryLines.push("1× Vương miện giấy sinh nhật hoàng gia (Slide 85)");
+    if (toppings.enamelPin) accessoryLines.push("1× Huy hiệu kim loại mạ vàng Enamel Pin (Slide 83)");
+  }
+
+  const pipingPositionLabel =
+    pipingPosition === "dual-rim"
+      ? "Cả viền đỉnh & chân đế (Dual-Rim Lambeth)"
+      : pipingPosition === "top-only"
+      ? "Chỉ viền đỉnh bánh (Top Rim Only)"
+      : pipingPosition === "full-lambeth-swag"
+      ? "Full Lambeth Swag (Ren đỉnh, chân đế & rèm võng quý tộc)"
+      : "Tiêu chuẩn";
+
+  const fontObj = FONT_OPTIONS.find((f) => f.id === typography?.font);
+  const finalWishMessage = typography?.text || handwrittenText || wishText || "Nguyện điều ngọt ngào nhất";
 
   const shapeTitle =
     shape === "round"
@@ -92,14 +140,18 @@ export default function BakingBlueprintModal({
       ? "Chữ Nhật Baroque (Sheet Cake)"
       : shape === "two-tier"
       ? "Hoàng Gia 2 Tầng Lệch (Royal 2-Tier Castle)"
-      : shape === "cinnamon-roll"
-      ? "Quế Cuộn Kem Chảy (Signature Cinnamon Roll Glaze)"
-      : shape === "croissant"
-      ? "Croissant Bơ Pháp Ngàn Lớp (French Butter Croissant)"
-      : shape === "egg-tart"
-      ? "Tart Trứng Custard (Pastéis de Nata Egg Tart)"
+      : shape === "cat-y2k"
+      ? "Mèo Y2K Đeo Kính (Y2K Kitty Glasses Cake - Slide 58)"
+      : shape === "puppy-bow"
+      ? "Cún Puppy Nơ Xanh (Harajuku Ribbon Puppy - Slide 59)"
       : shape === "cookie"
-      ? "Bánh Quy Mềm Thủ Công (Artisanal Soft Cookie)"
+      ? "Bánh Quy Gấu Mềm (Artisanal Cookie Bear - Slide 42/62)"
+      : shape === "croissant"
+      ? "Croissant Bơ Pháp Cột Nơ (French Butter Croissant - Slide 45/64)"
+      : shape === "cinnamon-roll"
+      ? "Cinnamon Roll Quế Chảy (Signature Cinnamon Glaze - Slide 40/61)"
+      : shape === "egg-tart"
+      ? "Tart Trứng Custard Bồ Đào Nha (Pastéis de Nata - Slide 43/63)"
       : String(shape).toUpperCase();
 
   const handleDownload = () => {
@@ -109,11 +161,11 @@ export default function BakingBlueprintModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-3xl rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border-4 border-wishes-blue/50 flex flex-col max-h-[92vh] overflow-y-auto font-sans">
+      <div className="relative w-full max-w-4xl rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border-4 border-wishes-blue/50 flex flex-col max-h-[92vh] overflow-y-auto font-sans">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-wishes-chocolate/60 hover:text-wishes-chocolate text-xl font-bold"
+          className="absolute top-5 right-5 w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-wishes-chocolate font-bold transition-colors"
         >
           ✕
         </button>
@@ -146,12 +198,12 @@ export default function BakingBlueprintModal({
           </div>
 
           {/* Wishes Quality Seal */}
-          <div className="hidden sm:flex flex-col items-center bg-amber-50 p-2 rounded-2xl border border-amber-300 text-center">
+          <div className="hidden sm:flex flex-col items-center bg-amber-50 p-2.5 rounded-2xl border border-amber-300 text-center">
             <Award className="w-5 h-5 text-amber-700 mb-0.5" />
             <span className="text-[8px] font-bold uppercase text-amber-900 tracking-wider">
               Wishes Certified
             </span>
-            <span className="text-[10px] font-serif font-black text-amber-800">{aestheticScore}/100</span>
+            <span className="text-[11px] font-serif font-black text-amber-800">{aestheticScore}/100</span>
           </div>
         </div>
 
@@ -161,16 +213,16 @@ export default function BakingBlueprintModal({
           <div className="p-4 rounded-2xl bg-wishes-cream/40 border border-wishes-chocolate/10 space-y-2 text-xs">
             <div className="font-bold text-wishes-cherry flex items-center gap-1.5">
               <Ruler className="w-4 h-4" />
-              <span>1. THÔNG SỐ HÌNH HỌC & KÍCH THƯỚC</span>
+              <span>1. THÔNG SỐ HÌNH HỌC & CỐT BÁNH</span>
             </div>
             <div className="text-wishes-chocolate/85 space-y-1">
-              <div>• Hình thái: <strong>{shapeTitle}</strong></div>
+              <div>• Hình thái bánh: <strong>{shapeTitle}</strong></div>
               <div>• Kích thước: <strong>Ø {size * 10} mm</strong> (Dung sai cho phép ±5mm)</div>
               <div>• Chiều cao tổng thể: <strong>110 mm</strong> (Cốt bánh 90mm + Bông kem đỉnh 20mm)</div>
               <div>• Trọng lượng dự kiến: <strong>~{size * 70} gram</strong></div>
               <div>• Đế lót bánh: <strong>Giấy bồi ép cứng 350gsm phủ màng chống trượt</strong></div>
 
-              {(shape === "two-tier" || size >= 20) && (
+              {(shape === "two-tier" || size >= 20 || shape === "rectangle") && (
                 <div className="mt-2 p-2 rounded-xl bg-amber-100/80 border border-amber-300 text-[10.5px] text-amber-950 font-medium space-y-0.5">
                   <div className="font-bold text-amber-900 flex items-center gap-1">
                     <ShieldCheck className="w-3.5 h-3.5 text-amber-700 flex-shrink-0" />
@@ -187,16 +239,17 @@ export default function BakingBlueprintModal({
           <div className="p-4 rounded-2xl bg-wishes-cream/40 border border-wishes-chocolate/10 space-y-2 text-xs">
             <div className="font-bold text-wishes-cherry flex items-center gap-1.5">
               <Layers className="w-4 h-4" />
-              <span>2. MÃ MÀU THỰC PHẨM & CÔNG THỨC PHA</span>
+              <span>2. MÃ MÀU THỰC PHẨM & KỸ THUẬT PHỦ KEM</span>
             </div>
             <div className="text-wishes-chocolate/85 space-y-1">
               <div>
                 • Kem phủ chính: <strong>{colorObj?.pantone || "Pantone 189 C"}</strong> ({frostingColor})
               </div>
-              <div className="text-[11px] text-stone-600 pl-2">↳ {colorObj?.flavorExtract}</div>
+              <div className="text-[11px] text-stone-600 pl-2">↳ Hương vị: {colorObj?.flavorExtract || "Vani Bourbon"}</div>
               <div>• Kiểu hoàn thiện: <strong>{finish.replace("-", " ").toUpperCase()}</strong></div>
               <div>• Kem viền ren: <strong>Pantone 705 C</strong> (Trắng bơ Mascarpone)</div>
               <div>• Đui bắt kem: <strong>{pipingObj?.name}</strong></div>
+              <div>• Vị trí bắt kem: <strong>{pipingPositionLabel}</strong></div>
             </div>
           </div>
 
@@ -219,23 +272,33 @@ export default function BakingBlueprintModal({
             </div>
           </div>
 
-          {/* 4. Kitchen SOP & Toppings */}
+          {/* 4. Kitchen SOP, Typography & Accessories */}
           <div className="p-4 rounded-2xl bg-wishes-cream/40 border border-wishes-chocolate/10 space-y-2 text-xs">
             <div className="font-bold text-wishes-cherry flex items-center gap-1.5">
               <Thermometer className="w-4 h-4" />
-              <span>4. BẢO QUẢN & PHỤ KIỆN TRANG TRÍ</span>
+              <span>4. BẢO QUẢN & QUY CÁCH TRANG TRÍ</span>
             </div>
             <div className="text-wishes-chocolate/85 space-y-1">
               <div>• Nhiệt độ bảo quản lạnh tiêu chuẩn: <strong>2°C – 5°C</strong> (Độ ẩm 65%)</div>
-              <div>• Vận chuyển: <strong>Thùng giữ nhiệt chuyên dụng kèm túi đá gel khô</strong></div>
+              <div>• Vận chuyển: <strong>Hộp House Box 3D + Thùng giữ nhiệt kèm đá gel khô</strong></div>
               <div>• Hạn sử dụng tốt nhất: <strong>72 giờ</strong> sau khi hoàn tất</div>
               <div>
-                • Phụ kiện đính kèm:{" "}
-                <strong>{activeToppingNames.length > 0 ? activeToppingNames.join(", ") : "Tối giản"}</strong>
+                • Phụ kiện 3D đính kèm:{" "}
+                <strong>{accessoryLines.length > 0 ? accessoryLines.join(", ") : "Tối giản"}</strong>
               </div>
               <div>
-                • Lời chúc bánh: <em>"{handwrittenText || wishText || "Nguyện điều ngọt ngào nhất"}"</em>
+                • Thông điệp chữ: <em>"{finalWishMessage}"</em>
               </div>
+              {typography && typography.text && (
+                <div className="text-[11px] text-stone-600 pl-2">
+                  ↳ Font: {fontObj?.name || typography.font} • Dạng:{" "}
+                  {typography.curve === "plaque"
+                    ? "Biển Socola Trắng Viền Vàng Hoàng Gia"
+                    : typography.curve === "arc-top" || typography.curve === "arc-bottom"
+                    ? "Bắt Kem Nổi 3D Uốn Vòng Cung"
+                    : "Bắt Kem Nổi 3D Trực Tiếp"}
+                </div>
+              )}
               <div>• Khách hàng đặt: <strong>{customerName || "Bồ Công Anh"}</strong></div>
             </div>
           </div>

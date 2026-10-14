@@ -8,24 +8,39 @@ import {
   MousseType,
   FrostingFinish,
   PipingStyle,
+  PipingPosition,
   ToppingConfig,
   SmartDrawingState,
+  AccessoryItem,
+  TypographyState,
 } from "./types";
 import {
   RealisticCherry,
   RealisticStrawberry,
+  BlueberryCluster,
   SatinRibbonBow,
-  PastelSpiralCandle,
   BirthdayCrown,
-  EnamelBadgePin,
+  PastelSpiralCandle,
+  NumberCandle,
   InstancedPastelSprinkles,
+  PipedDaisyFlower,
+  ChocolateBearTopper,
+  CatGlassesEarsTopper,
+  PuppyBowEarsTopper,
+  MacaronTopper,
+  ChocolatePlaqueTopper,
+  EnamelBadgePin,
+  WaferButterflyTopper,
   HautePipingPattern,
+  LambethSideSwags,
   useWonkyHeartGeometry,
   useBaroqueRectangleGeometry,
   CinnamonRollMesh,
   FrenchCroissantMesh,
   CustardEggTartMesh,
   ArtisanalCookieMesh,
+  CatY2KMesh,
+  PuppyBowMesh,
   FullCrossSectionCutaway,
   createFrostingBumpMap,
   createCrumbBumpMap,
@@ -50,10 +65,14 @@ interface Cake3DSceneProps {
   frostingColor: string;
   pipingStyle: PipingStyle;
   pipingColor: string;
-  toppings: ToppingConfig;
+  pipingPosition?: PipingPosition;
+  toppings?: ToppingConfig;
+  accessories?: AccessoryItem[];
   isCutawayMode: boolean;
   drawingState: SmartDrawingState;
+  typography?: TypographyState;
   activeStep?: number;
+  onCakeClick?: (pos: [number, number, number]) => void;
 }
 
 export default function Cake3DScene({
@@ -66,10 +85,14 @@ export default function Cake3DScene({
   frostingColor,
   pipingStyle,
   pipingColor,
+  pipingPosition = "dual-rim",
   toppings,
+  accessories = [],
   isCutawayMode,
   drawingState,
+  typography,
   activeStep = 1,
+  onCakeClick,
 }: Cake3DSceneProps) {
   const cakeGroupRef = useRef<THREE.Group>(null);
   const heartGeometry = useWonkyHeartGeometry();
@@ -78,21 +101,25 @@ export default function Cake3DScene({
   const tier1ArtisanalGeom = useMemo(() => createArtisanalCakeGeometry(1.7, 0.7, 0.04), []);
   const tier2ArtisanalGeom = useMemo(() => createArtisanalCakeGeometry(1.05, 0.65, 0.04), []);
 
-  // Procedural Textures generated in-memory (Material Truth)
   const frostingBumpMap = useMemo(() => createFrostingBumpMap(), []);
   const crumbBumpMap = useMemo(() => createCrumbBumpMap(), []);
   const pipingBumpMap = useMemo(() => createPipingBumpMap(), []);
 
-  // Non-uniform realistic size scaling: mini cakes remain chubby & tall, larger cakes expand wider proportionally
   const isCelebrationCake =
-    shape === "round" || shape === "heart" || shape === "rectangle" || shape === "two-tier";
+    shape === "round" ||
+    shape === "heart" ||
+    shape === "rectangle" ||
+    shape === "two-tier" ||
+    shape === "cat-y2k" ||
+    shape === "puppy-bow";
+
   const radialScale = size / 16;
   const heightScale = isCelebrationCake ? 0.85 + ((size - 10) / 14) * 0.25 : (size / 16) * 1.05;
   const groupScale: [number, number, number] = isCelebrationCake
     ? [radialScale, heightScale, radialScale]
     : [(size / 16) * 1.05, (size / 16) * 1.05, (size / 16) * 1.05];
 
-  // Material settings according to Finish (Haute Pâtisserie SSS)
+  // Material settings according to Finish
   const materialProps = useMemo(() => {
     if (finish === "mirror-glaze") {
       return {
@@ -121,7 +148,18 @@ export default function Cake3DScene({
         bumpScale: 0.012,
       };
     }
-    // Rustic Buttercream with SSS (Warm Core & Palette-Knife Swirl Bands)
+    if (finish === "airbrush-stars") {
+      return {
+        roughness: 0.28,
+        metalness: 0.02,
+        clearcoat: 0.4,
+        sheen: 0.75,
+        sheenColor: new THREE.Color("#FFD1DC"),
+        transmission: 0.06,
+        thickness: 0.6,
+      };
+    }
+    // Rustic Buttercream with SSS
     return {
       roughness: 0.32,
       metalness: 0.01,
@@ -138,7 +176,7 @@ export default function Cake3DScene({
     };
   }, [finish, frostingColor, frostingBumpMap, crumbBumpMap]);
 
-  // Determine top surface plane height and radius dynamically for any shape with exact precision
+  // Determine top surface plane height and radius dynamically
   const { surfaceY, surfaceRadius } = useMemo(() => {
     switch (shape) {
       case "two-tier":
@@ -147,21 +185,26 @@ export default function Cake3DScene({
         return { surfaceY: 0.755, surfaceRadius: 1.15 };
       case "rectangle":
         return { surfaceY: 0.58, surfaceRadius: 1.25 };
+      case "cat-y2k":
+      case "puppy-bow":
+        return { surfaceY: 0.505, surfaceRadius: 1.38 };
       case "cinnamon-roll":
         return { surfaceY: 0.365, surfaceRadius: 0.95 };
       case "croissant":
+      case "croissant-bow":
         return { surfaceY: 0.48, surfaceRadius: 0.85 };
       case "egg-tart":
         return { surfaceY: 0.35, surfaceRadius: 0.95 };
       case "cookie":
-        return { surfaceY: 0.12, surfaceRadius: 1.1 };
+      case "cookie-bear":
+        return { surfaceY: 0.14, surfaceRadius: 1.1 };
       case "round":
       default:
         return { surfaceY: 0.505, surfaceRadius: 1.38 };
     }
   }, [shape]);
 
-  // Texture Canvas for Top Calligraphy Text (render strokes as 3D tubes to avoid double rendering)
+  // Texture Canvas for Top Calligraphy & 3D Embossed Text
   const { canvasTexture, dynamicCanvas } = useMemo(() => {
     if (typeof document === "undefined") {
       return { canvasTexture: null, dynamicCanvas: null };
@@ -174,20 +217,32 @@ export default function Cake3DScene({
     return { canvasTexture: tex, dynamicCanvas: canvas };
   }, []);
 
-  // Update Canvas Texture when text changes (strokes are rendered in true 3D TubeGeometry)
+  const hasCenterTextOrPiping = useMemo(() => {
+    const txt = (typography?.text || drawingState.customText || drawingState.presetText || "").trim();
+    return txt.length > 0 || drawingState.strokes.length > 0;
+  }, [typography?.text, drawingState.customText, drawingState.presetText, drawingState.strokes.length]);
+
   useEffect(() => {
     if (!dynamicCanvas || !canvasTexture) return;
     renderPipingToCanvas(
       dynamicCanvas,
-      [], // Only render text on 2D disc to avoid duplicate lines with 3D tubes
+      [],
       drawingState.customText || drawingState.presetText,
       drawingState.textColor,
-      false
+      false,
+      typography
     );
     canvasTexture.needsUpdate = true;
-  }, [dynamicCanvas, canvasTexture, drawingState.customText, drawingState.presetText, drawingState.textColor]);
+  }, [
+    dynamicCanvas,
+    canvasTexture,
+    drawingState.customText,
+    drawingState.presetText,
+    drawingState.textColor,
+    typography,
+  ]);
 
-  // 3D Volumetric Tubes for Multi-point Hand-Piped Strokes with Fluted Star Nozzle & Taper
+  // 3D Volumetric Tubes for Multi-point Hand-Piped Strokes
   const tubeGeometries = useMemo(() => {
     return drawingState.strokes
       .map((stroke) => {
@@ -219,7 +274,7 @@ export default function Cake3DScene({
       });
   }, [drawingState.strokes, surfaceRadius, surfaceY]);
 
-  // Subtle floating idle motion with Wonky Charm tilt
+  // Subtle floating idle motion
   useFrame((state) => {
     if (!cakeGroupRef.current || isCutawayMode) return;
     const t = state.clock.getElapsedTime();
@@ -227,6 +282,109 @@ export default function Cake3DScene({
     cakeGroupRef.current.rotation.x = 0.018 + Math.sin(t * 0.8) * 0.002;
     cakeGroupRef.current.rotation.z = -0.015 + Math.cos(t * 0.7) * 0.002;
   });
+
+  // Backward compatibility: If no accessories in array but old toppings boolean is present
+  const resolvedAccessories: AccessoryItem[] = useMemo(() => {
+    if (accessories && accessories.length > 0) return accessories;
+    if (!toppings) return [];
+    const list: AccessoryItem[] = [];
+    if (toppings.cherry) {
+      list.push({ id: "legacy-cherry", type: "cherry", count: 1, layout: "center", scale: 1.0, unitPrice: 12000 });
+    }
+    if (toppings.strawberry) {
+      list.push({ id: "legacy-straw", type: "strawberry", count: 1, layout: "front-arc", scale: 1.0, unitPrice: 15000 });
+    }
+    if (toppings.sprinkles) {
+      list.push({ id: "legacy-sprinkles", type: "sugar-pearls", count: 1, layout: "scatter", scale: 1.0, unitPrice: 15000 });
+    }
+    if (toppings.ribbonBow) {
+      list.push({ id: "legacy-bow", type: "satin-bow", count: 1, layout: "corners", scale: 1.0, unitPrice: 18000 });
+    }
+    if (toppings.spiralCandle) {
+      list.push({ id: "legacy-candle", type: "spiral-candle", count: 1, layout: "corners", scale: 1.0, unitPrice: 8000 });
+    }
+    if (toppings.crown) {
+      list.push({ id: "legacy-crown", type: "crown", count: 1, layout: "center", scale: 1.0, unitPrice: 45000 });
+    }
+    if (toppings.enamelPin) {
+      list.push({ id: "legacy-pin", type: "enamel-pin", count: 1, layout: "front-arc", scale: 1.0, unitPrice: 45000 });
+    }
+    return list;
+  }, [accessories, toppings]);
+
+  // Helper to compute layout positions on cake top surface
+  const computeAccessoryPositions = (
+    item: AccessoryItem
+  ): [number, number, number][] => {
+    if (item.customPositions && item.customPositions.length > 0) {
+      return item.customPositions;
+    }
+
+    const positions: [number, number, number][] = [];
+    const count = item.count;
+    const r = surfaceRadius * 0.78;
+
+    if (item.layout === "center" || count === 1) {
+      if (item.type === "enamel-pin") {
+        // Enamel pin always mounted on front vertical wall / cake board ribbon
+        return [[0, surfaceY - 0.35, surfaceRadius + 0.05]];
+      }
+      if (hasCenterTextOrPiping) {
+        // Avoid center collision: place at top crest
+        return [[0, surfaceY, -surfaceRadius * 0.65]];
+      }
+      return [[0, surfaceY, 0]];
+    }
+
+    if (item.layout === "ring") {
+      for (let i = 0; i < count; i++) {
+        const a = (i / count) * Math.PI * 2;
+        positions.push([Math.cos(a) * r, surfaceY, Math.sin(a) * r]);
+      }
+      return positions;
+    }
+
+    if (item.layout === "corners") {
+      if (shape === "rectangle") {
+        const cx = 1.1;
+        const cz = 0.8;
+        const cornerCoords: [number, number][] = [
+          [-cx, -cz],
+          [cx, -cz],
+          [-cx, cz],
+          [cx, cz],
+        ];
+        for (let i = 0; i < count; i++) {
+          const c = cornerCoords[i % 4];
+          positions.push([c[0], surfaceY, c[1]]);
+        }
+        return positions;
+      }
+      for (let i = 0; i < count; i++) {
+        const a = Math.PI * 0.25 + (i / count) * Math.PI * 2;
+        positions.push([Math.cos(a) * r, surfaceY, Math.sin(a) * r]);
+      }
+      return positions;
+    }
+
+    if (item.layout === "front-arc") {
+      const arcSpan = Math.PI * 0.6;
+      const startA = Math.PI * 0.5 - arcSpan / 2;
+      for (let i = 0; i < count; i++) {
+        const a = count > 1 ? startA + (i / (count - 1)) * arcSpan : Math.PI * 0.5;
+        positions.push([Math.cos(a) * r, surfaceY, Math.sin(a) * r]);
+      }
+      return positions;
+    }
+
+    // Default: scatter
+    for (let i = 0; i < count; i++) {
+      const a = (i * 2.39996) % (Math.PI * 2);
+      const dist = (0.35 + (i % 3) * 0.2) * r;
+      positions.push([Math.cos(a) * dist, surfaceY, Math.sin(a) * dist]);
+    }
+    return positions;
+  };
 
   // If in cutaway mode, render full 5-layer engineering cross-section
   if (isCutawayMode) {
@@ -249,52 +407,48 @@ export default function Cake3DScene({
       scale={groupScale}
       position={[0, -0.2, 0]}
       rotation={[0.018, 0, -0.015]}
+      onClick={(e) => {
+        if (onCakeClick) {
+          e.stopPropagation();
+          onCakeClick([e.point.x, surfaceY, e.point.z]);
+        }
+      }}
     >
-      {/* 1. Main Pastry Body Geometries */}
+      {/* 1. MAIN PASTRY BODIES (10 DISTINCT SHAPES) */}
+
       {shape === "round" && (
         <group>
-          {/* Artisanal Cake Body with Soft Palette-Knife Beveled Rims */}
           <mesh geometry={roundArtisanalGeom} position={[0, 0, 0]} castShadow receiveShadow>
             <meshPhysicalMaterial color={frostingColor} {...materialProps} />
           </mesh>
 
-          {/* Procedural Viscous Drips when Mirror Glaze finish */}
           {finish === "mirror-glaze" && (
             <ViscousDripRim radius={1.49} y={0.5} color={frostingColor} />
           )}
 
-          {/* Top Piping Ring on Upper Softened Rim */}
           <HautePipingPattern
             style={pipingStyle}
             radius={1.46}
-            y={0.50}
+            y={0.5}
             color={pipingColor}
             shapeType="round"
           />
 
-          {/* Bottom Rim Piping Ring */}
-          <HautePipingPattern
-            style={pipingStyle}
-            radius={1.52}
-            y={-0.50}
-            color={pipingColor}
-            scale={1.06}
-            shapeType="round"
-          />
-
-          {/* Mid-body Garland Shells */}
-          {pipingStyle === "wilton-shell" && (
+          {(pipingPosition === "dual-rim" || pipingPosition === "full-lambeth-swag") && (
             <HautePipingPattern
-              style="wilton-shell"
-              radius={1.51}
-              y={0.0}
-              color={frostingColor}
-              scale={0.88}
+              style={pipingStyle}
+              radius={1.52}
+              y={-0.5}
+              color={pipingColor}
+              scale={1.06}
               shapeType="round"
             />
           )}
 
-          {/* Top Calligraphy Canvas Disc */}
+          {pipingPosition === "full-lambeth-swag" && (
+            <LambethSideSwags radius={1.51} topY={0.45} color={pipingColor} />
+          )}
+
           {canvasTexture && (
             <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <circleGeometry args={[surfaceRadius, 48]} />
@@ -306,12 +460,10 @@ export default function Cake3DScene({
 
       {shape === "heart" && (
         <group>
-          {/* Heart Body */}
           <mesh geometry={heartGeometry} castShadow receiveShadow position={[0, 0, 0]}>
             <meshPhysicalMaterial color={frostingColor} {...materialProps} />
           </mesh>
 
-          {/* Heart Top Accent Piping tracing Wonky Heart Contour */}
           <HautePipingPattern
             style={pipingStyle}
             radius={1.25}
@@ -320,12 +472,10 @@ export default function Cake3DScene({
             shapeType="heart"
           />
 
-          {/* Procedural Viscous Drips when Mirror Glaze finish */}
           {finish === "mirror-glaze" && (
             <ViscousDripRim radius={1.22} y={surfaceY} color={frostingColor} count={22} />
           )}
 
-          {/* Top Calligraphy Canvas Disc */}
           {canvasTexture && (
             <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <circleGeometry args={[surfaceRadius, 32]} />
@@ -337,12 +487,10 @@ export default function Cake3DScene({
 
       {shape === "rectangle" && (
         <group>
-          {/* Baroque Rectangle Body */}
           <mesh geometry={rectangleGeometry} castShadow receiveShadow position={[0, 0, 0]}>
             <meshPhysicalMaterial color={frostingColor} {...materialProps} />
           </mesh>
 
-          {/* Rectangle Top Piping tracing Baroque Contour */}
           <HautePipingPattern
             style={pipingStyle}
             radius={1.35}
@@ -351,7 +499,6 @@ export default function Cake3DScene({
             shapeType="rectangle"
           />
 
-          {/* Top Calligraphy Canvas Disc */}
           {canvasTexture && (
             <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <planeGeometry args={[2.5, 1.8]} />
@@ -363,7 +510,6 @@ export default function Cake3DScene({
 
       {shape === "two-tier" && (
         <group>
-          {/* Base Tier 1 (20cm) with Artisanal Rims */}
           <mesh geometry={tier1ArtisanalGeom} position={[0, -0.3, 0]} castShadow receiveShadow>
             <meshPhysicalMaterial color={frostingColor} {...materialProps} />
           </mesh>
@@ -383,7 +529,6 @@ export default function Cake3DScene({
             shapeType="round"
           />
 
-          {/* Top Tier 2 (12cm) with Artisanal Rims */}
           <mesh geometry={tier2ArtisanalGeom} position={[0, 0.45, 0]} castShadow receiveShadow>
             <meshPhysicalMaterial color={frostingColor} {...materialProps} />
           </mesh>
@@ -395,12 +540,14 @@ export default function Cake3DScene({
             shapeType="round"
           />
 
-          {/* Tier 2 Viscous Drip Rim when Mirror Glaze finish */}
+          {pipingPosition === "full-lambeth-swag" && (
+            <LambethSideSwags radius={1.05} topY={surfaceY - 0.05} color={pipingColor} swagsCount={6} />
+          )}
+
           {finish === "mirror-glaze" && (
             <ViscousDripRim radius={1.04} y={surfaceY} color={frostingColor} count={20} />
           )}
 
-          {/* Top Calligraphy Canvas Disc on Tier 2 */}
           {canvasTexture && (
             <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <circleGeometry args={[surfaceRadius, 32]} />
@@ -410,7 +557,44 @@ export default function Cake3DScene({
         </group>
       )}
 
-      {/* Daily Baked Goods Procedural 3D Meshes */}
+      {shape === "cat-y2k" && (
+        <group>
+          <CatY2KMesh frostingColor={frostingColor} />
+          <HautePipingPattern
+            style={pipingStyle}
+            radius={1.46}
+            y={0.5}
+            color={pipingColor}
+            shapeType="round"
+          />
+          {canvasTexture && (
+            <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[surfaceRadius * 0.9, 32]} />
+              <meshBasicMaterial map={canvasTexture} transparent depthWrite={false} />
+            </mesh>
+          )}
+        </group>
+      )}
+
+      {shape === "puppy-bow" && (
+        <group>
+          <PuppyBowMesh frostingColor={frostingColor} />
+          <HautePipingPattern
+            style={pipingStyle}
+            radius={1.46}
+            y={0.5}
+            color={pipingColor}
+            shapeType="round"
+          />
+          {canvasTexture && (
+            <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[surfaceRadius * 0.9, 32]} />
+              <meshBasicMaterial map={canvasTexture} transparent depthWrite={false} />
+            </mesh>
+          )}
+        </group>
+      )}
+
       {shape === "cinnamon-roll" && (
         <group>
           <CinnamonRollMesh />
@@ -423,7 +607,7 @@ export default function Cake3DScene({
         </group>
       )}
 
-      {shape === "croissant" && (
+      {(shape === "croissant" || shape === "croissant-bow") && (
         <group>
           <FrenchCroissantMesh />
           {canvasTexture && (
@@ -447,7 +631,7 @@ export default function Cake3DScene({
         </group>
       )}
 
-      {shape === "cookie" && (
+      {(shape === "cookie" || shape === "cookie-bear") && (
         <group>
           <ArtisanalCookieMesh color={frostingColor} />
           {canvasTexture && (
@@ -459,7 +643,7 @@ export default function Cake3DScene({
         </group>
       )}
 
-      {/* 2. 3D Hand-Drawn Volumetric Cream Tubes with Longitudinal Fluted Ridges */}
+      {/* 2. 3D HAND-DRAWN VOLUMETRIC CREAM TUBES */}
       {tubeGeometries.map(
         (tube, idx) =>
           tube && (
@@ -478,7 +662,7 @@ export default function Cake3DScene({
           )
       )}
 
-      {/* 3. 3D Cream Rosettes for Single-Point Taps */}
+      {/* 3. 3D CREAM ROSETTES FOR SINGLE-POINT TAPS */}
       {singlePointBeads.map((bead, idx) => (
         <mesh key={`bead-${idx}`} position={bead.position} geometry={bead.geom} castShadow>
           <meshPhysicalMaterial
@@ -492,42 +676,84 @@ export default function Cake3DScene({
         </mesh>
       ))}
 
-      {/* 4. Toppings & Accessories for All Pastries (Precision Resting on Top Surface) */}
-      <group position={[0, 0, 0]}>
-        {/* Cherry with fluted rosette bed */}
-        {toppings.cherry && (
-          <RealisticCherry position={[0, surfaceY, 0]} />
-        )}
-
-        {/* Fresh Strawberry */}
-        {toppings.strawberry && (
-          <RealisticStrawberry position={[0.45, surfaceY + 0.01, 0.35]} />
-        )}
-
-        {/* Pastel Sugar Pearls Sprinkles */}
-        {toppings.sprinkles && (
-          <InstancedPastelSprinkles radius={surfaceRadius * 0.9} y={surfaceY + 0.01} />
-        )}
-
-        {/* Baby Blue Satin Ribbon Bow (Slide 84) */}
-        {toppings.ribbonBow && (
-          <SatinRibbonBow position={[0, shape === "two-tier" ? -0.25 : -0.38, 1.55]} />
-        )}
-
-        {/* Pastel Spiral Candle */}
-        {toppings.spiralCandle && (
-          <PastelSpiralCandle position={[-0.45, surfaceY + 0.01, -0.35]} />
-        )}
-
-        {/* Birthday Crown (Slide 85) */}
-        {toppings.crown && (
-          <BirthdayCrown position={[0, surfaceY + 0.01, 0]} />
-        )}
-
-        {/* Enamel Pin Badge (Slide 83) */}
-        {toppings.enamelPin && (
-          <EnamelBadgePin position={[0.65, surfaceY + 0.01, 0.45]} />
-        )}
+      {/* 4. MULTI-INSTANCE 3D ACCESSORY STUDIO RENDERING */}
+      <group>
+        {resolvedAccessories.map((item) => {
+          const positions = computeAccessoryPositions(item);
+          return positions.map((pos, pIdx) => {
+            const key = `acc-${item.id}-${pIdx}`;
+            switch (item.type) {
+              case "cherry":
+                return <RealisticCherry key={key} position={pos} scale={item.scale} />;
+              case "strawberry":
+                return <RealisticStrawberry key={key} position={pos} scale={item.scale} />;
+              case "blueberry-cluster":
+                return <BlueberryCluster key={key} position={pos} scale={item.scale} />;
+              case "satin-bow":
+                return (
+                  <SatinRibbonBow
+                    key={key}
+                    position={pos}
+                    scale={item.scale}
+                    color={item.color || "#A0C4FF"}
+                  />
+                );
+              case "crown":
+                return <BirthdayCrown key={key} position={pos} scale={item.scale} />;
+              case "spiral-candle":
+                return <PastelSpiralCandle key={key} position={pos} scale={item.scale} />;
+              case "number-candle":
+                return (
+                  <NumberCandle
+                    key={key}
+                    position={pos}
+                    scale={item.scale}
+                    numberText={item.customText || "20"}
+                  />
+                );
+              case "sugar-pearls":
+                return (
+                  <InstancedPastelSprinkles
+                    key={key}
+                    radius={surfaceRadius * 0.9}
+                    y={surfaceY + 0.01}
+                  />
+                );
+              case "piped-flowers":
+                return <PipedDaisyFlower key={key} position={pos} scale={item.scale} />;
+              case "chocolate-bear":
+                return <ChocolateBearTopper key={key} position={pos} scale={item.scale} />;
+              case "cat-glasses-ears":
+                return <CatGlassesEarsTopper key={key} position={pos} scale={item.scale} />;
+              case "puppy-bow-ears":
+                return <PuppyBowEarsTopper key={key} position={pos} scale={item.scale} />;
+              case "macaron":
+                return (
+                  <MacaronTopper
+                    key={key}
+                    position={pos}
+                    scale={item.scale}
+                    color={item.color || "#FFAEC9"}
+                  />
+                );
+              case "chocolate-plaque":
+                return (
+                  <ChocolatePlaqueTopper
+                    key={key}
+                    position={pos}
+                    scale={item.scale}
+                    text={item.customText || typography?.text || "WISHES"}
+                  />
+                );
+              case "enamel-pin":
+                return <EnamelBadgePin key={key} position={pos} />;
+              case "wafer-butterfly":
+                return <WaferButterflyTopper key={key} position={pos} scale={item.scale} />;
+              default:
+                return null;
+            }
+          });
+        })}
       </group>
     </group>
   );

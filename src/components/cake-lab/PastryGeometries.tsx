@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Float, Html } from "@react-three/drei";
+import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import {
   CakeShape,
@@ -9,19 +9,15 @@ import {
   MousseType,
   FrostingFinish,
   PipingStyle,
-  ToppingConfig,
+  PipingPosition,
   SPONGE_OPTIONS,
   GELEE_OPTIONS,
   MOUSSE_OPTIONS,
 } from "./types";
-import { strokeTo3DCurve, createFlutedRosetteGeometry } from "./SmartPipingEngine";
+import { createFlutedRosetteGeometry } from "./SmartPipingEngine";
 
 // --- PROCEDURAL PASTRY TEXTURES (MATERIAL TRUTH) ---
 
-/**
- * Procedural Palette-Knife Spatula Frosting Bump Map
- * 512x512 canvas texture with subtle horizontal swirl bands and micro air-pockets.
- */
 export function createFrostingBumpMap(): THREE.CanvasTexture | null {
   if (typeof document === "undefined") return null;
   const size = 512;
@@ -36,19 +32,14 @@ export function createFrostingBumpMap(): THREE.CanvasTexture | null {
 
   for (let y = 0; y < size; y++) {
     const ny = y / size;
-    // Organic horizontal palette-knife spatula sweep bands
     const band = Math.sin(ny * Math.PI * 4) * 16 + Math.cos(ny * Math.PI * 2) * 10;
     for (let x = 0; x < size; x++) {
       const nx = x / size;
       const idx = (y * size + x) * 4;
       const swirl = Math.sin(nx * Math.PI * 2 + band * 0.08 + Math.cos(ny * Math.PI * 3) * 1.5) * 12;
       const microNoise = (Math.random() - 0.5) * 8;
-
-      // Micro air pockets in whipped buttercream
       let pit = 0;
-      if (Math.random() < 0.002) {
-        pit = -28;
-      }
+      if (Math.random() < 0.002) pit = -28;
 
       const val = Math.min(255, Math.max(0, 128 + band + swirl + microNoise + pit));
       data[idx] = val;
@@ -67,10 +58,6 @@ export function createFrostingBumpMap(): THREE.CanvasTexture | null {
   return texture;
 }
 
-/**
- * Procedural Sponge Crumb Alvéolage Bump Map (Slide 36-37)
- * 512x512 cellular porous noise canvas texture mimicking baked sponge air pockets.
- */
 export function createCrumbBumpMap(): THREE.CanvasTexture | null {
   if (typeof document === "undefined") return null;
   const size = 512;
@@ -86,7 +73,6 @@ export function createCrumbBumpMap(): THREE.CanvasTexture | null {
   const imgData = ctx.getImageData(0, 0, size, size);
   const data = imgData.data;
 
-  // Fine flour / crumb grain
   for (let i = 0; i < data.length; i += 4) {
     const grain = (Math.random() - 0.5) * 28;
     const v = Math.min(255, Math.max(0, 128 + grain));
@@ -97,7 +83,6 @@ export function createCrumbBumpMap(): THREE.CanvasTexture | null {
   }
   ctx.putImageData(imgData, 0, 0);
 
-  // Draw cellular porous air pockets (alvéoles)
   for (let p = 0; p < 420; p++) {
     const px = Math.random() * size;
     const py = Math.random() * size;
@@ -123,10 +108,6 @@ export function createCrumbBumpMap(): THREE.CanvasTexture | null {
   return texture;
 }
 
-/**
- * Creates an artisanal cake body geometry with soft, slightly rounded palette-knife rims
- * to eliminate CG-rigidity and CNC mechanical 90-degree edges.
- */
 export function createArtisanalCakeGeometry(
   radius: number = 1.5,
   height: number = 1.0,
@@ -136,11 +117,8 @@ export function createArtisanalCakeGeometry(
   const halfH = height / 2;
   const segments = 8;
 
-  // Center bottom
   points.push(new THREE.Vector2(0, -halfH));
-  // Flat bottom
   points.push(new THREE.Vector2(radius - bevelRadius, -halfH));
-  // Bottom rounded rim
   for (let i = 0; i <= segments; i++) {
     const a = -Math.PI / 2 + (i / segments) * (Math.PI / 2);
     points.push(
@@ -150,9 +128,7 @@ export function createArtisanalCakeGeometry(
       )
     );
   }
-  // Side wall
   points.push(new THREE.Vector2(radius, halfH - bevelRadius));
-  // Top softened rim (palette-knife rounded edge)
   for (let i = 0; i <= segments; i++) {
     const a = (i / segments) * (Math.PI / 2);
     points.push(
@@ -162,7 +138,6 @@ export function createArtisanalCakeGeometry(
       )
     );
   }
-  // Top flat surface to center
   points.push(new THREE.Vector2(0, halfH));
 
   const geom = new THREE.LatheGeometry(points, 64);
@@ -172,12 +147,12 @@ export function createArtisanalCakeGeometry(
 
 /**
  * Fluted Lambeth Shell Geometry for Royal Wilton #21 borders.
- * Features 3D teardrop taper profile: head swells to 1.25x radius, curls upward, and tapers to 0.25x
- * with 8 fluted star ridges spanning both height (dy) and radial thickness (dz), overlapping seamlessly.
+ * Swollen head curls upward slightly, 8 longitudinal fluted ridges,
+ * tapering smoothly to a slender tail that nestles under the next shell head.
  */
 export function createLambethShellGeometry(
-  baseRadius: number = 0.075,
-  length: number = 0.35
+  baseRadius: number = 0.055,
+  length: number = 0.28
 ): THREE.BufferGeometry {
   const geom = new THREE.BufferGeometry();
   const segments = 16;
@@ -190,12 +165,12 @@ export function createLambethShellGeometry(
   for (let i = 0; i <= segments; i++) {
     const t = i / segments;
     let radiusScale = 0.35;
-    if (t < 0.22) {
-      const u = t / 0.22;
-      radiusScale = 0.65 + (1.25 - 0.65) * Math.sin(u * Math.PI * 0.5);
+    if (t < 0.25) {
+      const u = t / 0.25;
+      radiusScale = 0.7 + (1.25 - 0.7) * Math.sin(u * Math.PI * 0.5);
     } else {
-      const u = (t - 0.22) / 0.78;
-      radiusScale = 1.25 - (1.25 - 0.25) * Math.sin(u * Math.PI * 0.5);
+      const u = (t - 0.25) / 0.75;
+      radiusScale = 1.25 - (1.25 - 0.22) * Math.sin(u * Math.PI * 0.5);
     }
 
     const rOuter = baseRadius * radiusScale;
@@ -203,15 +178,14 @@ export function createLambethShellGeometry(
 
     // Shell curved arc trajectory along tangential X and upward curl Y
     const xCenter = (t - 0.5) * length;
-    const yCenter = Math.sin(t * Math.PI) * 0.026 + (1 - t) * 0.012;
-    const zCenter = (1 - Math.cos(t * Math.PI)) * 0.015;
+    const yCenter = Math.sin(t * Math.PI) * 0.02 + (1 - t) * 0.01;
+    const zCenter = 0;
 
     for (let j = 0; j < numVerticesPerRing; j++) {
       const angle = (j / numVerticesPerRing) * Math.PI * 2;
       const r = j % 2 === 0 ? rOuter : rInner;
-      // Cross section is in the YZ plane (perpendicular to tangential travel X)
-      const dy = Math.sin(angle) * r; // Vertical height
-      const dz = Math.cos(angle) * r; // Radial thickness
+      const dy = Math.sin(angle) * r;
+      const dz = Math.cos(angle) * r;
 
       positions.push(xCenter, yCenter + dy, zCenter + dz);
       uvs.push(j / numVerticesPerRing, t);
@@ -230,16 +204,14 @@ export function createLambethShellGeometry(
     }
   }
 
-  // Cap start (head)
   const startCenterIdx = positions.length / 3;
-  positions.push(-0.5 * length, 0.012, 0);
+  positions.push(-0.5 * length, 0.01, 0);
   uvs.push(0.5, 0);
   for (let j = 0; j < numVerticesPerRing; j++) {
     const nextJ = (j + 1) % numVerticesPerRing;
     indices.push(startCenterIdx, nextJ, j);
   }
 
-  // Cap end (tail)
   const endCenterIdx = positions.length / 3;
   positions.push(0.5 * length, 0, 0);
   uvs.push(0.5, 1);
@@ -258,12 +230,10 @@ export function createLambethShellGeometry(
 }
 
 /**
- * Custom vertex-deformed sphere with indented stem cavity (lúm cuống cherry)
- * per prompt formula: y *= 1 - 0.28 * exp(-r*r*8)
- * and flattened bottom to nestle into a cream rosette.
+ * Realistic Cherry Geometry (Indented stem cavity & subtle heart-shaped plumpness)
  */
-export function createRealisticCherryGeometry(): THREE.BufferGeometry {
-  const geom = new THREE.SphereGeometry(0.26, 36, 36);
+export function createRealisticCherryGeometry(radius: number = 0.13): THREE.BufferGeometry {
+  const geom = new THREE.SphereGeometry(radius, 32, 32);
   const pos = geom.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     let x = pos.getX(i);
@@ -271,16 +241,13 @@ export function createRealisticCherryGeometry(): THREE.BufferGeometry {
     let z = pos.getZ(i);
     const r = Math.sqrt(x * x + z * z);
 
-    // Stem cavity indentation at top pole
     if (y > 0) {
-      y *= 1 - 0.28 * Math.exp(-r * r * 8);
+      y *= 1 - 0.28 * Math.exp(-r * r * (10 / (radius * radius)));
     }
-    // Bottom flattening where it nestles into cream
-    if (y < -0.05) {
-      y *= 0.82;
+    if (y < -radius * 0.2) {
+      y *= 0.88;
     }
-    // Heart-like plumpness
-    const plump = 1 + 0.08 * Math.sin(((y + 0.26) / 0.52) * Math.PI);
+    const plump = 1 + 0.06 * Math.sin(((y + radius) / (radius * 2)) * Math.PI);
     x *= plump;
     z *= plump;
 
@@ -290,30 +257,32 @@ export function createRealisticCherryGeometry(): THREE.BufferGeometry {
   return geom;
 }
 
-// --- PROCEDURAL 3D ACCESSORIES & TOPPINGS (FROM PROPOSAL) ---
+// --- 16 PROCEDURAL 3D ACCESSORY COMPONENTS ---
 
-// 1. Realistic Glossy Cherry with Dew Droplets & Curved Stem (Slide 59)
+// 1. Realistic Cherry
 export function RealisticCherry({
   position = [0, 0, 0],
+  scale = 1.0,
 }: {
   position?: [number, number, number];
+  scale?: number;
 }) {
-  const cherryGeometry = useMemo(() => createRealisticCherryGeometry(), []);
-  const rosetteGeometry = useMemo(() => createFlutedRosetteGeometry(0.12, 8, 8), []);
+  const cherryGeometry = useMemo(() => createRealisticCherryGeometry(0.12), []);
+  const rosetteGeometry = useMemo(() => createFlutedRosetteGeometry(0.08, 8, 8), []);
 
   const stemGeometry = useMemo(() => {
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 0.40, 0),
-      new THREE.Vector3(0.04, 0.62, 0.03),
-      new THREE.Vector3(0.11, 0.82, 0.01),
-      new THREE.Vector3(0.08, 0.98, -0.05),
+      new THREE.Vector3(0, 0.16, 0),
+      new THREE.Vector3(0.02, 0.26, 0.02),
+      new THREE.Vector3(0.06, 0.38, 0.01),
+      new THREE.Vector3(0.04, 0.46, -0.02),
     ]);
-    return new THREE.TubeGeometry(curve, 24, 0.012, 8, false);
+    return new THREE.TubeGeometry(curve, 20, 0.007, 8, false);
   }, []);
 
   return (
-    <group position={position}>
-      {/* Fluted Cream Rosette Bed underneath cherry resting directly on cake surface */}
+    <group position={position} scale={[scale, scale, scale]}>
+      {/* Cream rosette bed underneath */}
       <mesh geometry={rosetteGeometry} position={[0, 0, 0]} castShadow receiveShadow>
         <meshPhysicalMaterial
           color="#FFFDF5"
@@ -324,8 +293,8 @@ export function RealisticCherry({
         />
       </mesh>
 
-      {/* Anatomically Accurate Ruby Cherry Body nestled into cream bed */}
-      <mesh geometry={cherryGeometry} position={[0, 0.22, 0]} castShadow receiveShadow>
+      {/* Glossy ruby cherry body */}
+      <mesh geometry={cherryGeometry} position={[0, 0.10, 0]} castShadow receiveShadow>
         <meshPhysicalMaterial
           color="#E6194B"
           roughness={0.05}
@@ -338,49 +307,564 @@ export function RealisticCherry({
         />
       </mesh>
 
-      {/* Indented Stem Cavity Core */}
-      <mesh position={[0, 0.40, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.026, 0.012, 8, 16]} />
-        <meshStandardMaterial color="#4A0010" roughness={0.7} />
-      </mesh>
-
-      {/* Curved Green Stem */}
+      {/* Curved green stem */}
       <mesh geometry={stemGeometry} castShadow>
         <meshStandardMaterial color="#5C8001" roughness={0.35} />
       </mesh>
 
-      {/* Stem Knob at Tip */}
-      <mesh position={[0.08, 0.98, -0.05]} castShadow>
-        <sphereGeometry args={[0.022, 12, 12]} />
+      {/* Stem tip */}
+      <mesh position={[0.04, 0.46, -0.02]} castShadow>
+        <sphereGeometry args={[0.012, 10, 10]} />
         <meshStandardMaterial color="#405900" roughness={0.4} />
-      </mesh>
-
-      {/* Water Droplets */}
-      <mesh position={[0.11, 0.32, 0.17]}>
-        <sphereGeometry args={[0.03, 12, 12]} />
-        <meshPhysicalMaterial
-          color="#FFFFFF"
-          transmission={0.96}
-          roughness={0}
-          ior={1.33}
-          clearcoat={1.0}
-        />
-      </mesh>
-      <mesh position={[-0.13, 0.26, 0.15]}>
-        <sphereGeometry args={[0.022, 12, 12]} />
-        <meshPhysicalMaterial
-          color="#FFFFFF"
-          transmission={0.96}
-          roughness={0}
-          ior={1.33}
-          clearcoat={1.0}
-        />
       </mesh>
     </group>
   );
 }
 
-// Procedural Viscous Drip Rim for Mirror Glaze & Cinnamon Icing
+// 2. Realistic Strawberry
+export function RealisticStrawberry({
+  position = [0, 0, 0],
+  scale = 1.0,
+}: {
+  position?: [number, number, number];
+  scale?: number;
+}) {
+  return (
+    <group position={position} scale={[scale, scale, scale]} rotation={[0.15, 0.3, -0.1]}>
+      <mesh castShadow receiveShadow position={[0, 0.1, 0]}>
+        <coneGeometry args={[0.14, 0.28, 24]} />
+        <meshPhysicalMaterial color="#D90429" roughness={0.12} clearcoat={0.8} />
+      </mesh>
+      <mesh position={[0, 0.22, 0]}>
+        <sphereGeometry args={[0.14, 20, 16]} />
+        <meshPhysicalMaterial color="#D90429" roughness={0.15} clearcoat={0.8} />
+      </mesh>
+      {Array.from({ length: 5 }).map((_, idx) => {
+        const angle = (idx / 5) * Math.PI * 2;
+        return (
+          <mesh
+            key={idx}
+            position={[Math.cos(angle) * 0.1, 0.28, Math.sin(angle) * 0.1]}
+            rotation={[0.3, angle, 0.4]}
+          >
+            <cylinderGeometry args={[0.04, 0.008, 0.12, 8]} />
+            <meshStandardMaterial color="#2D6A4F" roughness={0.4} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
+// 3. Blueberry Cluster with Gold Leaf dust
+export function BlueberryCluster({
+  position = [0, 0, 0],
+  scale = 1.0,
+}: {
+  position?: [number, number, number];
+  scale?: number;
+}) {
+  return (
+    <group position={position} scale={[scale, scale, scale]}>
+      {[
+        [0, 0.06, 0],
+        [0.08, 0.05, 0.04],
+        [-0.07, 0.05, 0.03],
+        [0.02, 0.05, -0.08],
+        [0.03, 0.12, 0],
+      ].map((pos, idx) => (
+        <mesh key={idx} position={pos as [number, number, number]} castShadow>
+          <sphereGeometry args={[0.055, 16, 16]} />
+          <meshPhysicalMaterial
+            color="#2A3B66"
+            roughness={0.25}
+            clearcoat={0.6}
+            sheen={0.8}
+            sheenColor={new THREE.Color("#A0B4E8")}
+          />
+        </mesh>
+      ))}
+      {/* 24K Gold Leaf specks */}
+      <mesh position={[0.04, 0.14, 0.02]}>
+        <planeGeometry args={[0.04, 0.04]} />
+        <meshStandardMaterial color="#FFD700" metalness={0.9} roughness={0.1} />
+      </mesh>
+    </group>
+  );
+}
+
+// 4. Satin Ribbon Bow
+export function SatinRibbonBow({
+  position = [0, 0, 0],
+  scale = 1.0,
+  color = "#A0C4FF",
+}: {
+  position?: [number, number, number];
+  scale?: number;
+  color?: string;
+}) {
+  return (
+    <group position={position} scale={[scale, scale, scale]} rotation={[0.2, 0, 0]}>
+      <mesh castShadow>
+        <sphereGeometry args={[0.05, 16, 16]} />
+        <meshPhysicalMaterial
+          color={color}
+          roughness={0.3}
+          clearcoat={0.5}
+          sheen={1}
+          sheenColor={new THREE.Color("#FFF")}
+        />
+      </mesh>
+      <mesh position={[-0.12, 0.04, 0]} rotation={[0, 0, 0.4]} castShadow>
+        <torusGeometry args={[0.09, 0.03, 12, 24, Math.PI * 1.5]} />
+        <meshPhysicalMaterial color={color} roughness={0.3} clearcoat={0.5} sheen={1} />
+      </mesh>
+      <mesh position={[0.12, 0.04, 0]} rotation={[0, 0, -0.4]} castShadow>
+        <torusGeometry args={[0.09, 0.03, 12, 24, Math.PI * 1.5]} />
+        <meshPhysicalMaterial color={color} roughness={0.3} clearcoat={0.5} sheen={1} />
+      </mesh>
+      <mesh position={[-0.07, -0.14, 0.02]} rotation={[0, 0, 0.2]} castShadow>
+        <cylinderGeometry args={[0.02, 0.03, 0.2, 10]} />
+        <meshPhysicalMaterial color={color} roughness={0.3} clearcoat={0.5} />
+      </mesh>
+      <mesh position={[0.07, -0.14, 0.02]} rotation={[0, 0, -0.2]} castShadow>
+        <cylinderGeometry args={[0.02, 0.03, 0.2, 10]} />
+        <meshPhysicalMaterial color={color} roughness={0.3} clearcoat={0.5} />
+      </mesh>
+    </group>
+  );
+}
+
+// 5. Golden Birthday Crown
+export function BirthdayCrown({
+  position = [0, 0, 0],
+  scale = 1.0,
+}: {
+  position?: [number, number, number];
+  scale?: number;
+}) {
+  return (
+    <group position={position} scale={[scale * 0.4, scale * 0.4, scale * 0.4]}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.65, 0.65, 0.12, 32, 1, true]} />
+        <meshPhysicalMaterial color="#FFD700" metalness={0.85} roughness={0.2} clearcoat={0.9} />
+      </mesh>
+      {Array.from({ length: 6 }).map((_, i) => {
+        const angle = (i / 6) * Math.PI * 2;
+        const x = Math.cos(angle) * 0.65;
+        const z = Math.sin(angle) * 0.65;
+        return (
+          <mesh key={i} position={[x, 0.18, z]} rotation={[0, -angle, 0]} castShadow>
+            <coneGeometry args={[0.12, 0.28, 4]} />
+            <meshPhysicalMaterial color="#FFD700" metalness={0.85} roughness={0.2} clearcoat={0.9} />
+          </mesh>
+        );
+      })}
+    </group>
+  );
+}
+
+// 6. Pastel Spiral Candle
+export function PastelSpiralCandle({
+  position = [0, 0, 0],
+  scale = 1.0,
+}: {
+  position?: [number, number, number];
+  scale?: number;
+}) {
+  const flameRef = useRef<THREE.Mesh>(null);
+  useFrame((state) => {
+    if (!flameRef.current) return;
+    const t = state.clock.getElapsedTime();
+    flameRef.current.scale.y = 1 + Math.sin(t * 12) * 0.15;
+    flameRef.current.scale.x = 1 + Math.cos(t * 15) * 0.1;
+  });
+
+  return (
+    <group position={position} scale={[scale, scale, scale]}>
+      <mesh position={[0, 0.22, 0]} castShadow>
+        <cylinderGeometry args={[0.025, 0.025, 0.45, 16]} />
+        <meshStandardMaterial color="#FFB6C1" roughness={0.3} />
+      </mesh>
+      <mesh position={[0, 0.46, 0]}>
+        <cylinderGeometry args={[0.004, 0.004, 0.04, 8]} />
+        <meshBasicMaterial color="#2B1810" />
+      </mesh>
+      <mesh ref={flameRef} position={[0, 0.52, 0]}>
+        <sphereGeometry args={[0.022, 16, 16]} />
+        <meshBasicMaterial color="#FFA000" />
+      </mesh>
+      <pointLight position={[0, 0.55, 0]} intensity={1.5} distance={1.8} color="#FFD166" />
+    </group>
+  );
+}
+
+// 7. Number Candle ("00" to "99")
+export function NumberCandle({
+  position = [0, 0, 0],
+  scale = 1.0,
+  numberText = "20",
+}: {
+  position?: [number, number, number];
+  scale?: number;
+  numberText?: string;
+}) {
+  const flameRef = useRef<THREE.Mesh>(null);
+  useFrame((state) => {
+    if (!flameRef.current) return;
+    const t = state.clock.getElapsedTime();
+    flameRef.current.scale.y = 1 + Math.sin(t * 12) * 0.15;
+  });
+
+  return (
+    <group position={position} scale={[scale, scale, scale]}>
+      <mesh position={[0, 0.14, 0]} castShadow>
+        <boxGeometry args={[0.26, 0.28, 0.06]} />
+        <meshPhysicalMaterial color="#FFD700" metalness={0.8} roughness={0.2} />
+      </mesh>
+      <Html position={[0, 0.14, 0.04]} center transform>
+        <div className="font-serif font-black text-amber-950 text-xs px-1 select-none pointer-events-none">
+          {numberText || "20"}
+        </div>
+      </Html>
+      <mesh ref={flameRef} position={[0, 0.35, 0]}>
+        <sphereGeometry args={[0.024, 16, 16]} />
+        <meshBasicMaterial color="#FF9900" />
+      </mesh>
+      <pointLight position={[0, 0.38, 0]} intensity={1.8} distance={1.8} color="#FFD166" />
+    </group>
+  );
+}
+
+// 8. Micro Sugar Pearls, Rods & Star Confetti
+export function InstancedPastelSprinkles({
+  radius = 1.35,
+  y = 0.52,
+  count = 90,
+}: {
+  radius?: number;
+  y?: number;
+  count?: number;
+}) {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const colors = useMemo(
+    () => [
+      new THREE.Color("#FF3366"),
+      new THREE.Color("#A0C4FF"),
+      new THREE.Color("#BEE3DB"),
+      new THREE.Color("#FFD166"),
+      new THREE.Color("#FFAEC9"),
+      new THREE.Color("#E2C6FF"),
+      new THREE.Color("#FFFFFF"),
+    ],
+    []
+  );
+
+  useEffect(() => {
+    if (!meshRef.current) return;
+    const dummy = new THREE.Object3D();
+
+    for (let i = 0; i < count; i++) {
+      const r = (0.55 + Math.sqrt(i / count) * 0.42) * radius;
+      const theta = i * 2.39996;
+      const x = Math.cos(theta) * r;
+      const z = Math.sin(theta) * r;
+
+      dummy.position.set(x, y + Math.sin(i) * 0.003, z);
+      dummy.rotation.set(Math.sin(i) * 0.2, theta, Math.cos(i) * 0.2);
+      // Realistic micro size (0.018)
+      dummy.scale.setScalar(0.018 + (i % 3) * 0.005);
+      dummy.updateMatrix();
+
+      meshRef.current.setMatrixAt(i, dummy.matrix);
+      meshRef.current.setColorAt(i, colors[i % colors.length]);
+    }
+
+    meshRef.current.instanceMatrix.needsUpdate = true;
+    if (meshRef.current.instanceColor) {
+      meshRef.current.instanceColor.needsUpdate = true;
+    }
+  }, [radius, y, count, colors]);
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow receiveShadow>
+      <sphereGeometry args={[1, 10, 10]} />
+      <meshPhysicalMaterial roughness={0.15} clearcoat={0.9} clearcoatRoughness={0.1} />
+    </instancedMesh>
+  );
+}
+
+// 9. Piped Daisy Flower (5-petal buttercream flower)
+export function PipedDaisyFlower({
+  position = [0, 0, 0],
+  scale = 1.0,
+}: {
+  position?: [number, number, number];
+  scale?: number;
+}) {
+  return (
+    <group position={position} scale={[scale, scale, scale]}>
+      {/* 5 Petals */}
+      {Array.from({ length: 5 }).map((_, i) => {
+        const a = (i / 5) * Math.PI * 2;
+        return (
+          <mesh
+            key={i}
+            position={[Math.cos(a) * 0.05, 0.01, Math.sin(a) * 0.05]}
+            rotation={[0, -a, 0]}
+            castShadow
+          >
+            <cylinderGeometry args={[0.035, 0.02, 0.015, 12]} />
+            <meshPhysicalMaterial color="#FFFDF5" roughness={0.3} clearcoat={0.2} />
+          </mesh>
+        );
+      })}
+      {/* Yellow center pistil */}
+      <mesh position={[0, 0.02, 0]} castShadow>
+        <sphereGeometry args={[0.025, 12, 12]} />
+        <meshPhysicalMaterial color="#FFD166" roughness={0.2} clearcoat={0.5} />
+      </mesh>
+    </group>
+  );
+}
+
+// 10. Chocolate Teddy Bear Topper
+export function ChocolateBearTopper({
+  position = [0, 0, 0],
+  scale = 1.0,
+}: {
+  position?: [number, number, number];
+  scale?: number;
+}) {
+  return (
+    <group position={position} scale={[scale, scale, scale]}>
+      {/* Bear Head */}
+      <mesh position={[0, 0.16, 0]} castShadow>
+        <sphereGeometry args={[0.13, 20, 20]} />
+        <meshStandardMaterial color="#3D2314" roughness={0.4} />
+      </mesh>
+      {/* Left Ear */}
+      <mesh position={[-0.11, 0.27, 0]} castShadow>
+        <sphereGeometry args={[0.045, 12, 12]} />
+        <meshStandardMaterial color="#3D2314" roughness={0.4} />
+      </mesh>
+      {/* Right Ear */}
+      <mesh position={[0.11, 0.27, 0]} castShadow>
+        <sphereGeometry args={[0.045, 12, 12]} />
+        <meshStandardMaterial color="#3D2314" roughness={0.4} />
+      </mesh>
+      {/* Snout */}
+      <mesh position={[0, 0.13, 0.1]} castShadow>
+        <sphereGeometry args={[0.055, 14, 14]} />
+        <meshStandardMaterial color="#5C381E" roughness={0.5} />
+      </mesh>
+      {/* Black Nose */}
+      <mesh position={[0, 0.16, 0.14]}>
+        <sphereGeometry args={[0.018, 10, 10]} />
+        <meshBasicMaterial color="#1A0D07" />
+      </mesh>
+    </group>
+  );
+}
+
+// 11. Cat Ears & Y2K Star Sunglasses Topper
+export function CatGlassesEarsTopper({
+  position = [0, 0, 0],
+  scale = 1.0,
+}: {
+  position?: [number, number, number];
+  scale?: number;
+}) {
+  return (
+    <group position={position} scale={[scale, scale, scale]}>
+      {/* Left Pointed Cat Ear */}
+      <mesh position={[-0.24, 0.2, 0]} rotation={[0, 0, -0.3]} castShadow>
+        <coneGeometry args={[0.1, 0.26, 4]} />
+        <meshPhysicalMaterial color="#FFAEC9" roughness={0.3} />
+      </mesh>
+      {/* Right Pointed Cat Ear */}
+      <mesh position={[0.24, 0.2, 0]} rotation={[0, 0, 0.3]} castShadow>
+        <coneGeometry args={[0.1, 0.26, 4]} />
+        <meshPhysicalMaterial color="#FFAEC9" roughness={0.3} />
+      </mesh>
+      {/* Y2K Orange Star Sunglasses Bar */}
+      <group position={[0, 0.05, 0.22]}>
+        <mesh position={[-0.14, 0, 0]} rotation={[0, 0, 0.2]}>
+          <cylinderGeometry args={[0.09, 0.09, 0.02, 5]} />
+          <meshStandardMaterial color="#FF7A00" roughness={0.2} metalness={0.5} />
+        </mesh>
+        <mesh position={[0.14, 0, 0]} rotation={[0, 0, -0.2]}>
+          <cylinderGeometry args={[0.09, 0.09, 0.02, 5]} />
+          <meshStandardMaterial color="#FF7A00" roughness={0.2} metalness={0.5} />
+        </mesh>
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[0.1, 0.02, 0.02]} />
+          <meshStandardMaterial color="#FF7A00" />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+// 12. Puppy Bow Ears Topper
+export function PuppyBowEarsTopper({
+  position = [0, 0, 0],
+  scale = 1.0,
+}: {
+  position?: [number, number, number];
+  scale?: number;
+}) {
+  return (
+    <group position={position} scale={[scale, scale, scale]}>
+      {/* Left Floppy Ear */}
+      <mesh position={[-0.32, 0.05, 0]} rotation={[0, 0, -0.5]} castShadow>
+        <cylinderGeometry args={[0.08, 0.12, 0.35, 16]} />
+        <meshPhysicalMaterial color="#FFF9E6" roughness={0.4} />
+      </mesh>
+      {/* Left Bow on ear */}
+      <SatinRibbonBow position={[-0.26, 0.18, 0.08]} scale={0.7} color="#A0C4FF" />
+
+      {/* Right Floppy Ear */}
+      <mesh position={[0.32, 0.05, 0]} rotation={[0, 0, 0.5]} castShadow>
+        <cylinderGeometry args={[0.08, 0.12, 0.35, 16]} />
+        <meshPhysicalMaterial color="#FFF9E6" roughness={0.4} />
+      </mesh>
+      {/* Right Bow on ear */}
+      <SatinRibbonBow position={[0.26, 0.18, 0.08]} scale={0.7} color="#A0C4FF" />
+    </group>
+  );
+}
+
+// 13. French Mini Macaron Topper
+export function MacaronTopper({
+  position = [0, 0, 0],
+  scale = 1.0,
+  color = "#FFAEC9",
+}: {
+  position?: [number, number, number];
+  scale?: number;
+  color?: string;
+}) {
+  return (
+    <group position={position} scale={[scale, scale, scale]} rotation={[0.2, 0.4, 0]}>
+      {/* Top Shell */}
+      <mesh position={[0, 0.04, 0]} castShadow>
+        <cylinderGeometry args={[0.11, 0.12, 0.045, 24]} />
+        <meshPhysicalMaterial color={color} roughness={0.25} clearcoat={0.3} />
+      </mesh>
+      {/* Filling Ganache */}
+      <mesh position={[0, 0.015, 0]}>
+        <cylinderGeometry args={[0.1, 0.1, 0.025, 24]} />
+        <meshStandardMaterial color="#FFFDF5" roughness={0.4} />
+      </mesh>
+      {/* Bottom Shell */}
+      <mesh position={[0, -0.01, 0]} castShadow>
+        <cylinderGeometry args={[0.12, 0.11, 0.045, 24]} />
+        <meshPhysicalMaterial color={color} roughness={0.25} clearcoat={0.3} />
+      </mesh>
+    </group>
+  );
+}
+
+// 14. White Chocolate Plaque
+export function ChocolatePlaqueTopper({
+  position = [0, 0, 0],
+  scale = 1.0,
+  text = "WISHES",
+}: {
+  position?: [number, number, number];
+  scale?: number;
+  text?: string;
+}) {
+  return (
+    <group position={position} scale={[scale, scale, scale]}>
+      {/* Plaque Base */}
+      <mesh position={[0, 0.02, 0]} castShadow>
+        <boxGeometry args={[0.65, 0.03, 0.28]} />
+        <meshPhysicalMaterial color="#FFFDF5" roughness={0.15} clearcoat={0.8} />
+      </mesh>
+      {/* Golden Frame Border */}
+      <mesh position={[0, 0.035, 0]}>
+        <boxGeometry args={[0.62, 0.005, 0.25]} />
+        <meshStandardMaterial color="#DAA520" metalness={0.8} roughness={0.2} wireframe />
+      </mesh>
+      <Html position={[0, 0.04, 0]} center transform>
+        <div className="font-serif italic font-bold text-amber-900 text-[10px] whitespace-nowrap select-none pointer-events-none">
+          {text || "Wishes Pâtisserie"}
+        </div>
+      </Html>
+    </group>
+  );
+}
+
+// 15. Wishes Enamel Badge / Pin (Front Vertical Wall / Ribbon)
+export function EnamelBadgePin({
+  position = [0, -0.15, 1.55],
+}: {
+  position?: [number, number, number];
+}) {
+  return (
+    <group position={position} rotation={[-0.1, 0, 0]}>
+      {/* Gold Rim Frame */}
+      <mesh castShadow>
+        <cylinderGeometry args={[0.14, 0.14, 0.025, 32]} />
+        <meshPhysicalMaterial color="#DAA520" metalness={0.9} roughness={0.15} />
+      </mesh>
+      {/* Inner Enamel Cream Infill */}
+      <mesh position={[0, 0.014, 0]}>
+        <cylinderGeometry args={[0.12, 0.12, 0.01, 32]} />
+        <meshPhysicalMaterial color="#FFFDF5" roughness={0.05} clearcoat={1.0} />
+      </mesh>
+      {/* Wishes Star Emblem in Enamel */}
+      <mesh position={[0, 0.022, 0]} rotation={[0, 0, 0]}>
+        <boxGeometry args={[0.06, 0.01, 0.06]} />
+        <meshPhysicalMaterial color="#FF3366" roughness={0.1} />
+      </mesh>
+    </group>
+  );
+}
+
+// 16. Wafer Butterflies & Gold Leaf
+export function WaferButterflyTopper({
+  position = [0, 0, 0],
+  scale = 1.0,
+}: {
+  position?: [number, number, number];
+  scale?: number;
+}) {
+  return (
+    <group position={position} scale={[scale, scale, scale]} rotation={[0.4, 0.6, 0.2]}>
+      {/* Left Wing */}
+      <mesh position={[-0.06, 0.04, 0]} rotation={[0, -0.5, 0.3]} castShadow>
+        <planeGeometry args={[0.1, 0.14]} />
+        <meshPhysicalMaterial
+          color="#FFF"
+          transmission={0.8}
+          roughness={0.1}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {/* Right Wing */}
+      <mesh position={[0.06, 0.04, 0]} rotation={[0, 0.5, -0.3]} castShadow>
+        <planeGeometry args={[0.1, 0.14]} />
+        <meshPhysicalMaterial
+          color="#FFF"
+          transmission={0.8}
+          roughness={0.1}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {/* Butterfly Body */}
+      <mesh position={[0, 0.02, 0]}>
+        <cylinderGeometry args={[0.01, 0.01, 0.08, 8]} />
+        <meshStandardMaterial color="#DAA520" metalness={0.9} />
+      </mesh>
+    </group>
+  );
+}
+
+// --- VISCOUS DRIP RIM ---
+
 export function ViscousDripRim({
   radius = 1.48,
   y = 0.5,
@@ -437,296 +921,78 @@ export function ViscousDripRim({
   );
 }
 
-// 2. Fresh Ripe Strawberry with Green Calyx Leaves
-export function RealisticStrawberry({
-  position = [0, 0.75, 0],
-}: {
-  position?: [number, number, number];
-}) {
-  return (
-    <group position={position} rotation={[0.15, 0.3, -0.1]}>
-      {/* Strawberry Body (Cone with rounded tip) */}
-      <mesh castShadow receiveShadow position={[0, 0.15, 0]}>
-        <coneGeometry args={[0.2, 0.42, 24]} />
-        <meshPhysicalMaterial
-          color="#D90429"
-          roughness={0.12}
-          clearcoat={0.8}
-          clearcoatRoughness={0.1}
-        />
-      </mesh>
+// --- LAMBETH SIDE SWAGS / DROP GARLANDS (SLIDE 6 & 38) ---
 
-      {/* Strawberry Base Sphere for rounded shoulder */}
-      <mesh position={[0, 0.32, 0]}>
-        <sphereGeometry args={[0.2, 24, 16]} />
-        <meshPhysicalMaterial color="#D90429" roughness={0.15} clearcoat={0.8} />
-      </mesh>
-
-      {/* Leafy Green Calyx (5 star leaves) */}
-      {Array.from({ length: 5 }).map((_, idx) => {
-        const angle = (idx / 5) * Math.PI * 2;
-        return (
-          <mesh
-            key={idx}
-            position={[Math.cos(angle) * 0.14, 0.44, Math.sin(angle) * 0.14]}
-            rotation={[0.3, angle, 0.4]}
-          >
-            <cylinderGeometry args={[0.06, 0.01, 0.18, 8]} />
-            <meshStandardMaterial color="#2D6A4F" roughness={0.4} />
-          </mesh>
-        );
-      })}
-    </group>
-  );
-}
-
-// 3. Satin Ribbon Bow in Baby Blue (Slide 84)
-export function SatinRibbonBow({
-  position = [0, 0.65, 0],
-}: {
-  position?: [number, number, number];
-}) {
-  return (
-    <group position={position} rotation={[0.2, 0, 0]}>
-      {/* Center Knot */}
-      <mesh castShadow>
-        <sphereGeometry args={[0.08, 16, 16]} />
-        <meshPhysicalMaterial
-          color="#A0C4FF"
-          roughness={0.3}
-          clearcoat={0.5}
-          sheen={1}
-          sheenColor={new THREE.Color("#D0E2FF")}
-        />
-      </mesh>
-
-      {/* Left Loop */}
-      <mesh position={[-0.18, 0.06, 0]} rotation={[0, 0, 0.4]} castShadow>
-        <torusGeometry args={[0.14, 0.045, 12, 24, Math.PI * 1.5]} />
-        <meshPhysicalMaterial
-          color="#A0C4FF"
-          roughness={0.3}
-          clearcoat={0.5}
-          sheen={1}
-          sheenColor={new THREE.Color("#D0E2FF")}
-        />
-      </mesh>
-
-      {/* Right Loop */}
-      <mesh position={[0.18, 0.06, 0]} rotation={[0, 0, -0.4]} castShadow>
-        <torusGeometry args={[0.14, 0.045, 12, 24, Math.PI * 1.5]} />
-        <meshPhysicalMaterial
-          color="#A0C4FF"
-          roughness={0.3}
-          clearcoat={0.5}
-          sheen={1}
-          sheenColor={new THREE.Color("#D0E2FF")}
-        />
-      </mesh>
-
-      {/* Hanging Ribbons */}
-      <mesh position={[-0.1, -0.22, 0.02]} rotation={[0, 0, 0.2]} castShadow>
-        <cylinderGeometry args={[0.035, 0.045, 0.32, 12]} />
-        <meshPhysicalMaterial color="#A0C4FF" roughness={0.3} clearcoat={0.5} />
-      </mesh>
-      <mesh position={[0.1, -0.22, 0.02]} rotation={[0, 0, -0.2]} castShadow>
-        <cylinderGeometry args={[0.035, 0.045, 0.32, 12]} />
-        <meshPhysicalMaterial color="#A0C4FF" roughness={0.3} clearcoat={0.5} />
-      </mesh>
-    </group>
-  );
-}
-
-// 4. Pastel Spiral Candle with Flickering Flame Glow
-export function PastelSpiralCandle({
-  position = [0, 0.52, 0],
-}: {
-  position?: [number, number, number];
-}) {
-  const flameRef = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    if (!flameRef.current) return;
-    const t = state.clock.getElapsedTime();
-    flameRef.current.scale.y = 1 + Math.sin(t * 12) * 0.15;
-    flameRef.current.scale.x = 1 + Math.cos(t * 15) * 0.1;
-  });
-
-  return (
-    <group position={position}>
-      {/* Candle Cylinder Body */}
-      <mesh position={[0, 0.35, 0]} castShadow>
-        <cylinderGeometry args={[0.04, 0.04, 0.7, 16]} />
-        <meshStandardMaterial color="#FFB6C1" roughness={0.3} />
-      </mesh>
-
-      {/* Spiral Stripes on Candle */}
-      <mesh position={[0, 0.35, 0]}>
-        <cylinderGeometry args={[0.042, 0.042, 0.69, 16]} />
-        <meshStandardMaterial color="#FFF9E6" roughness={0.3} wireframe />
-      </mesh>
-
-      {/* Candle Wick */}
-      <mesh position={[0, 0.72, 0]}>
-        <cylinderGeometry args={[0.006, 0.006, 0.06, 8]} />
-        <meshBasicMaterial color="#2B1810" />
-      </mesh>
-
-      {/* Flickering Teardrop Flame */}
-      <mesh ref={flameRef} position={[0, 0.8, 0]}>
-        <sphereGeometry args={[0.035, 16, 16]} />
-        <meshBasicMaterial color="#FFA000" />
-      </mesh>
-
-      {/* Point Light emitted by Candle */}
-      <pointLight position={[0, 0.85, 0]} intensity={1.8} distance={2.5} color="#FFD166" />
-    </group>
-  );
-}
-
-// 5. Golden Wishes Birthday Crown / Tiara (Slide 85)
-export function BirthdayCrown({
-  position = [0, 0.65, 0],
-}: {
-  position?: [number, number, number];
-}) {
-  return (
-    <group position={position} scale={[0.5, 0.5, 0.5]}>
-      {/* Crown Rim Band */}
-      <mesh position={[0, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.65, 0.65, 0.12, 32, 1, true]} />
-        <meshPhysicalMaterial
-          color="#FFD700"
-          metalness={0.85}
-          roughness={0.2}
-          clearcoat={0.9}
-        />
-      </mesh>
-
-      {/* Crown Peak Spikes */}
-      {Array.from({ length: 6 }).map((_, i) => {
-        const angle = (i / 6) * Math.PI * 2;
-        const x = Math.cos(angle) * 0.65;
-        const z = Math.sin(angle) * 0.65;
-        return (
-          <mesh
-            key={i}
-            position={[x, 0.18, z]}
-            rotation={[0, -angle, 0]}
-            castShadow
-          >
-            <coneGeometry args={[0.12, 0.28, 4]} />
-            <meshPhysicalMaterial
-              color="#FFD700"
-              metalness={0.85}
-              roughness={0.2}
-              clearcoat={0.9}
-            />
-          </mesh>
-        );
-      })}
-    </group>
-  );
-}
-
-// 6. Wishes Enamel Badge / Pin (Slide 83)
-export function EnamelBadgePin({
-  position = [0.45, 0.55, 0.45],
-}: {
-  position?: [number, number, number];
-}) {
-  return (
-    <group position={position} rotation={[-0.2, 0.3, 0.15]}>
-      {/* Gold Rim Frame */}
-      <mesh castShadow>
-        <cylinderGeometry args={[0.16, 0.16, 0.03, 32]} />
-        <meshPhysicalMaterial color="#DAA520" metalness={0.9} roughness={0.15} />
-      </mesh>
-
-      {/* Inner Enamel Cream Infill */}
-      <mesh position={[0, 0.016, 0]}>
-        <cylinderGeometry args={[0.14, 0.14, 0.01, 32]} />
-        <meshPhysicalMaterial
-          color="#FFFDF5"
-          roughness={0.05}
-          clearcoat={1.0}
-        />
-      </mesh>
-
-      {/* Wishes Star Emblem in Enamel */}
-      <mesh position={[0, 0.025, 0]} rotation={[0, 0, 0]}>
-        <boxGeometry args={[0.07, 0.01, 0.07]} />
-        <meshPhysicalMaterial color="#FF3366" roughness={0.1} />
-      </mesh>
-    </group>
-  );
-}
-
-// --- INSTANCED SPRINKLES FOR 60FPS ZERO-LAG RENDERING ---
-
-export function InstancedPastelSprinkles({
-  radius = 1.35,
-  y = 0.52,
+export function LambethSideSwags({
+  radius = 1.5,
+  topY = 0.45,
+  swagsCount = 8,
+  color = "#FFFDF5",
 }: {
   radius?: number;
-  y?: number;
+  topY?: number;
+  swagsCount?: number;
+  color?: string;
 }) {
-  const count = 38;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const swagTubes = useMemo(() => {
+    const arr = [];
+    const rosetteGeom = createFlutedRosetteGeometry(0.055, 8, 8);
 
-  const colors = useMemo(
-    () => [
-      new THREE.Color("#FF3366"),
-      new THREE.Color("#A0C4FF"),
-      new THREE.Color("#BEE3DB"),
-      new THREE.Color("#FFD166"),
-      new THREE.Color("#FFAEC9"),
-      new THREE.Color("#E2C6FF"),
-      new THREE.Color("#FFFFFF"),
-    ],
-    []
-  );
+    for (let i = 0; i < swagsCount; i++) {
+      const a0 = (i / swagsCount) * Math.PI * 2;
+      const a1 = ((i + 1) / swagsCount) * Math.PI * 2;
 
-  useEffect(() => {
-    if (!meshRef.current) return;
-    const dummy = new THREE.Object3D();
+      // Catenary curve points
+      const points: THREE.Vector3[] = [];
+      const steps = 14;
+      for (let s = 0; s <= steps; s++) {
+        const u = s / steps;
+        const angle = a0 + u * (a1 - a0);
+        const x = Math.cos(angle) * (radius + 0.02);
+        const z = Math.sin(angle) * (radius + 0.02);
+        const sag = 0.18 * Math.sin(Math.PI * u);
+        const y = topY - sag - 0.08;
+        points.push(new THREE.Vector3(x, y, z));
+      }
+      const curve = new THREE.CatmullRomCurve3(points);
+      const tubeGeom = new THREE.TubeGeometry(curve, 20, 0.022, 8, false);
 
-    for (let i = 0; i < count; i++) {
-      // Golden spiral distribution
-      const r = Math.sqrt(i / count) * radius * 0.88;
-      const theta = i * 2.39996; // Golden angle
-      const x = Math.cos(theta) * r;
-      const z = Math.sin(theta) * r;
+      const junctionX = Math.cos(a0) * (radius + 0.025);
+      const junctionZ = Math.sin(a0) * (radius + 0.025);
+      const junctionPos: [number, number, number] = [junctionX, topY - 0.08, junctionZ];
 
-      dummy.position.set(x, y + (Math.sin(i) * 0.008), z);
-      dummy.rotation.set(Math.sin(i) * 0.2, theta, Math.cos(i) * 0.2);
-      dummy.scale.setScalar(0.04 + (i % 3) * 0.012);
-      dummy.updateMatrix();
-
-      meshRef.current.setMatrixAt(i, dummy.matrix);
-      meshRef.current.setColorAt(i, colors[i % colors.length]);
+      arr.push({ tubeGeom, junctionPos, rosetteGeom });
     }
-
-    meshRef.current.instanceMatrix.needsUpdate = true;
-    if (meshRef.current.instanceColor) {
-      meshRef.current.instanceColor.needsUpdate = true;
-    }
-  }, [radius, y, count, colors]);
+    return arr;
+  }, [radius, topY, swagsCount]);
 
   return (
-    <instancedMesh
-      ref={meshRef}
-      args={[undefined, undefined, count]}
-      castShadow
-      receiveShadow
-    >
-      <sphereGeometry args={[1, 12, 12]} />
-      <meshPhysicalMaterial roughness={0.15} clearcoat={0.9} clearcoatRoughness={0.1} />
-    </instancedMesh>
+    <group>
+      {swagTubes.map((swag, idx) => (
+        <group key={idx}>
+          <mesh geometry={swag.tubeGeom} castShadow receiveShadow>
+            <meshPhysicalMaterial
+              color={color}
+              roughness={0.28}
+              clearcoat={0.3}
+              transmission={0.06}
+            />
+          </mesh>
+          <mesh
+            geometry={swag.rosetteGeom}
+            position={swag.junctionPos}
+            rotation={[Math.PI / 2, 0, 0]}
+            castShadow
+          >
+            <meshPhysicalMaterial color={color} roughness={0.28} clearcoat={0.3} />
+          </mesh>
+        </group>
+      ))}
+    </group>
   );
 }
 
-// --- PIPING PATTERN COMPONENT ---
+// --- HAUTE PIPING PATTERN (PERFECT TANGENT ROTATION) ---
 
 export function HautePipingPattern({
   style,
@@ -743,12 +1009,13 @@ export function HautePipingPattern({
   scale?: number;
   shapeType?: CakeShape;
 }) {
-  const count = style === "st-honore" ? 20 : style === "ruffle-ribbon" ? 36 : 28;
-  const lambethShellGeom = useMemo(() => createLambethShellGeometry(0.075, 0.36), []);
+  const count = style === "st-honore" ? 22 : style === "ruffle-ribbon" ? 36 : 28;
+  const lambethShellGeom = useMemo(() => createLambethShellGeometry(0.065, 0.32), []);
   const rosetteGeom = useMemo(() => createFlutedRosetteGeometry(0.075, 8, 8), []);
 
   const beads = useMemo(() => {
     const arr = [];
+
     if (shapeType === "heart") {
       const shape = new THREE.Shape();
       shape.moveTo(0.5, 0.5);
@@ -769,7 +1036,8 @@ export function HautePipingPattern({
         const nextZ = (nextP.y - 0.95) * 1.22;
         const dx = nextX - x;
         const dz = nextZ - z;
-        const rotationY = Math.atan2(dx, dz);
+        // Exact mathematical tangent angle
+        const rotationY = Math.atan2(-dz, dx);
         arr.push({ x, z, rotationY });
       }
       return arr;
@@ -796,20 +1064,28 @@ export function HautePipingPattern({
         const nextP = pts[(i + 1) % count];
         const x = p.x;
         const z = p.y;
-        const dx = nextP.x - x;
-        const dz = nextP.y - z;
-        const rotationY = Math.atan2(dx, dz);
+        const nextX = nextP.x;
+        const nextZ = nextP.y;
+        const dx = nextX - x;
+        const dz = nextZ - z;
+        // Exact mathematical tangent angle
+        const rotationY = Math.atan2(-dz, dx);
         arr.push({ x, z, rotationY });
       }
       return arr;
     }
 
-    // Default: Circular rim
+    // Default: Circular rim with exact tangent calculation
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
+      const nextAngle = ((i + 1) / count) * Math.PI * 2;
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
-      const rotationY = -angle + Math.PI / 2;
+      const nextX = Math.cos(nextAngle) * radius;
+      const nextZ = Math.sin(nextAngle) * radius;
+      const dx = nextX - x;
+      const dz = nextZ - z;
+      const rotationY = Math.atan2(-dz, dx);
       arr.push({ x, z, rotationY });
     }
     return arr;
@@ -820,7 +1096,7 @@ export function HautePipingPattern({
   return (
     <group position={[0, y, 0]} scale={[scale, scale, scale]}>
       {beads.map((b, idx) => (
-        <group key={idx} position={[b.x, 0, b.z]} rotation={[0.08, b.rotationY, -0.06]}>
+        <group key={idx} position={[b.x, 0, b.z]} rotation={[0, b.rotationY, 0]}>
           {style === "wilton-shell" && (
             <mesh geometry={lambethShellGeom} castShadow receiveShadow>
               <meshPhysicalMaterial
@@ -839,38 +1115,24 @@ export function HautePipingPattern({
           {style === "st-honore" && (
             <mesh position={[0, 0.04, 0]} rotation={[0.3, 0.2, 0.4]} castShadow>
               <cylinderGeometry args={[0.02, 0.08, 0.18, 12]} />
-              <meshPhysicalMaterial
-                color={color}
-                roughness={0.25}
-                transmission={0.08}
-                clearcoat={0.4}
-              />
+              <meshPhysicalMaterial color={color} roughness={0.25} transmission={0.08} clearcoat={0.4} />
             </mesh>
           )}
 
           {style === "ruffle-ribbon" && (
             <mesh position={[0, 0.01, 0]} rotation={[0.5, 0, 0]} castShadow>
               <boxGeometry args={[0.14, 0.025, 0.08]} />
-              <meshPhysicalMaterial
-                color={color}
-                roughness={0.35}
-                clearcoat={0.2}
-              />
+              <meshPhysicalMaterial color={color} roughness={0.35} clearcoat={0.2} />
             </mesh>
           )}
 
           {style === "drop-flowers" && (
             <group position={[0, 0.02, 0]}>
               <mesh geometry={rosetteGeom} castShadow receiveShadow>
-                <meshPhysicalMaterial
-                  color={color}
-                  roughness={0.28}
-                  clearcoat={0.35}
-                  transmission={0.06}
-                />
+                <meshPhysicalMaterial color={color} roughness={0.28} clearcoat={0.35} transmission={0.06} />
               </mesh>
-              <mesh position={[0, 0.1, 0]}>
-                <sphereGeometry args={[0.022, 10, 10]} />
+              <mesh position={[0, 0.08, 0]}>
+                <sphereGeometry args={[0.018, 10, 10]} />
                 <meshPhysicalMaterial color="#FFFFFF" roughness={0.08} clearcoat={1.0} />
               </mesh>
             </group>
@@ -883,7 +1145,6 @@ export function HautePipingPattern({
 
 // --- SHAPE SPECIFIC GEOMETRIES ---
 
-// A. Wonky Heart Extruded Geometry
 export function useWonkyHeartGeometry() {
   return useMemo(() => {
     const shape = new THREE.Shape();
@@ -912,7 +1173,6 @@ export function useWonkyHeartGeometry() {
   }, []);
 }
 
-// B. Baroque Rectangle Geometry
 export function useBaroqueRectangleGeometry() {
   return useMemo(() => {
     const shape = new THREE.Shape();
@@ -945,13 +1205,12 @@ export function useBaroqueRectangleGeometry() {
   }, []);
 }
 
-// --- DAILY BAKED GOODS PROCEDURAL 3D MESHES (PROPOSAL SLIDE 60-64) ---
+// --- DAILY BAKED GOODS & SCULPTED PASTRIES ---
 
-// 1. Cinnamon Roll (Quế cuộn kem vani chảy)
+// 1. Cinnamon Roll
 export function CinnamonRollMesh() {
   return (
     <group position={[0, -0.1, 0]}>
-      {/* Outer spiral golden bun dough */}
       <mesh castShadow receiveShadow>
         <torusGeometry args={[1.1, 0.35, 24, 48]} />
         <meshStandardMaterial color="#B07D4F" roughness={0.65} />
@@ -964,8 +1223,6 @@ export function CinnamonRollMesh() {
         <cylinderGeometry args={[0.35, 0.35, 0.5, 24]} />
         <meshStandardMaterial color="#A0693B" roughness={0.7} />
       </mesh>
-
-      {/* Dripping Vanilla Icing Glaze */}
       <mesh position={[0, 0.3, 0]} castShadow>
         <cylinderGeometry args={[1.05, 1.2, 0.12, 32]} />
         <meshPhysicalMaterial
@@ -976,7 +1233,6 @@ export function CinnamonRollMesh() {
           transmission={0.1}
         />
       </mesh>
-      {/* Icing Drips */}
       {Array.from({ length: 8 }).map((_, i) => {
         const ang = (i / 8) * Math.PI * 2;
         return (
@@ -994,21 +1250,18 @@ export function CinnamonRollMesh() {
   );
 }
 
-// 2. French Butter Croissant (Bánh sừng bò bơ Pháp)
+// 2. French Butter Croissant (With optional coquette bow)
 export function FrenchCroissantMesh() {
   return (
     <group position={[0, 0, 0]} rotation={[0.2, 0.4, 0]}>
-      {/* Curved central thick crescent body */}
       <mesh castShadow receiveShadow>
         <torusGeometry args={[1.0, 0.42, 24, 48, Math.PI * 1.3]} />
         <meshStandardMaterial color="#D48B38" roughness={0.45} />
       </mesh>
-      {/* Layered flaky crust rings */}
       <mesh position={[0, 0.05, 0]}>
         <torusGeometry args={[1.0, 0.44, 16, 32, Math.PI * 0.9]} />
         <meshStandardMaterial color="#E8A856" roughness={0.4} />
       </mesh>
-      {/* Tapered end tips */}
       <mesh position={[-0.8, -0.2, 0.5]} rotation={[0, 0.8, 0]}>
         <coneGeometry args={[0.18, 0.4, 12]} />
         <meshStandardMaterial color="#B87326" roughness={0.5} />
@@ -1017,29 +1270,24 @@ export function FrenchCroissantMesh() {
         <coneGeometry args={[0.18, 0.4, 12]} />
         <meshStandardMaterial color="#B87326" roughness={0.5} />
       </mesh>
+      {/* Coquette Bow tied around waist */}
+      <SatinRibbonBow position={[0, 0.35, 0.25]} scale={0.8} color="#A0C4FF" />
     </group>
   );
 }
 
-// 3. Custard Egg Tart (Tart trứng vỏ ngàn lớp)
+// 3. Custard Egg Tart
 export function CustardEggTartMesh() {
   return (
     <group position={[0, -0.15, 0]}>
-      {/* Fluted puff pastry shell */}
       <mesh castShadow receiveShadow>
         <cylinderGeometry args={[1.35, 0.95, 0.65, 32]} />
         <meshStandardMaterial color="#C68B59" roughness={0.65} />
       </mesh>
-      {/* Golden egg custard filling */}
       <mesh position={[0, 0.22, 0]} castShadow>
         <cylinderGeometry args={[1.15, 0.85, 0.25, 32]} />
-        <meshPhysicalMaterial
-          color="#FFA000"
-          roughness={0.15}
-          clearcoat={0.8}
-        />
+        <meshPhysicalMaterial color="#FFA000" roughness={0.15} clearcoat={0.8} />
       </mesh>
-      {/* Caramelized blister spots (Crème Brûlée spots) */}
       <mesh position={[0.2, 0.35, 0.1]}>
         <circleGeometry args={[0.3, 16]} />
         <meshBasicMaterial color="#4A2E1B" />
@@ -1052,33 +1300,82 @@ export function CustardEggTartMesh() {
   );
 }
 
-// 4. Artisanal Soft Cookie (Cookie socola/matcha)
-export function ArtisanalCookieMesh({ color = "#587E4C" }: { color?: string }) {
+// 4. Artisanal Soft Cookie & Sleepy Bear Blanket (Slide 42 & 62)
+export function ArtisanalCookieMesh({ color = "#FFAEC9" }: { color?: string }) {
   return (
     <group position={[0, -0.1, 0]}>
-      {/* Rustic bumpy cookie disc */}
+      {/* Scalloped Petit Beurre butter biscuit base */}
       <mesh castShadow receiveShadow>
-        <cylinderGeometry args={[1.25, 1.25, 0.42, 32]} />
-        <meshStandardMaterial color={color} roughness={0.85} />
+        <boxGeometry args={[2.2, 0.25, 1.6]} />
+        <meshStandardMaterial color="#D2995B" roughness={0.7} />
       </mesh>
-      {/* Chocolate Chunks */}
-      {[
-        [0.4, 0.22, 0.3],
-        [-0.5, 0.22, 0.4],
-        [0.2, 0.22, -0.6],
-        [-0.4, 0.22, -0.3],
-        [0.7, 0.22, -0.2],
-      ].map((pos, idx) => (
-        <mesh key={idx} position={pos as [number, number, number]} castShadow>
-          <boxGeometry args={[0.22, 0.12, 0.22]} />
-          <meshStandardMaterial color="#2B1810" roughness={0.3} />
+      {/* Cream Pillow */}
+      <mesh position={[-0.6, 0.2, 0]} castShadow>
+        <boxGeometry args={[0.65, 0.15, 1.1]} />
+        <meshPhysicalMaterial color="#FFFDF5" roughness={0.3} clearcoat={0.2} />
+      </mesh>
+      {/* Sleeping Chocolate Bear Head on Pillow */}
+      <ChocolateBearTopper position={[-0.6, 0.18, 0]} scale={0.85} />
+      {/* Piped Icing Blanket with scalloped edge */}
+      <mesh position={[0.35, 0.24, 0]} castShadow>
+        <boxGeometry args={[1.25, 0.12, 1.4]} />
+        <meshPhysicalMaterial color={color} roughness={0.25} clearcoat={0.3} />
+      </mesh>
+    </group>
+  );
+}
+
+// 5. Mèo Ngầu Y2K (Slide 58 FU CAKE)
+export function CatY2KMesh({ frostingColor = "#FFAEC9" }: { frostingColor?: string }) {
+  const roundBodyGeom = useMemo(() => createArtisanalCakeGeometry(1.5, 1.0, 0.045), []);
+  return (
+    <group>
+      <mesh geometry={roundBodyGeom} castShadow receiveShadow>
+        <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
+      </mesh>
+      {/* Cat Ears & Y2K Star Glasses */}
+      <CatGlassesEarsTopper position={[0, 0.5, 0.3]} scale={1.2} />
+      {/* Airbrush Star freckles on cheeks */}
+      {[-0.55, 0.55].map((x, i) => (
+        <mesh key={i} position={[x, 0.2, 1.25]} rotation={[0, 0, 0.2]}>
+          <planeGeometry args={[0.18, 0.18]} />
+          <meshBasicMaterial color="#FF3366" transparent opacity={0.65} />
         </mesh>
       ))}
     </group>
   );
 }
 
-// --- FULL 3D CROSS-SECTION CUTAWAY BLUEPRINT ---
+// 6. Cún Tai Dài Đính Nơ (Slide 59 FU CAKE)
+export function PuppyBowMesh({ frostingColor = "#FFF9E6" }: { frostingColor?: string }) {
+  const roundBodyGeom = useMemo(() => createArtisanalCakeGeometry(1.5, 1.0, 0.045), []);
+  return (
+    <group>
+      <mesh geometry={roundBodyGeom} castShadow receiveShadow>
+        <meshPhysicalMaterial color={frostingColor} roughness={0.35} />
+      </mesh>
+      {/* Puppy Floppy Bow Ears */}
+      <PuppyBowEarsTopper position={[0, 0.45, 0.2]} scale={1.2} />
+      {/* Puppy Cute Nose & Eyes */}
+      <group position={[0, 0.1, 1.48]}>
+        <mesh position={[0, 0, 0]}>
+          <sphereGeometry args={[0.06, 16, 16]} />
+          <meshBasicMaterial color="#2B1810" />
+        </mesh>
+        <mesh position={[-0.18, 0.12, 0]}>
+          <sphereGeometry args={[0.035, 12, 12]} />
+          <meshBasicMaterial color="#2B1810" />
+        </mesh>
+        <mesh position={[0.18, 0.12, 0]}>
+          <sphereGeometry args={[0.035, 12, 12]} />
+          <meshBasicMaterial color="#2B1810" />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+// --- SHAPE-ACCURATE 3D CROSS-SECTION CUTAWAY BLUEPRINT ---
 
 export function FullCrossSectionCutaway({
   size,
@@ -1098,7 +1395,7 @@ export function FullCrossSectionCutaway({
   finish: FrostingFinish;
 }) {
   const isCelebration =
-    shape === "round" || shape === "heart" || shape === "rectangle" || shape === "two-tier";
+    shape === "round" || shape === "heart" || shape === "rectangle" || shape === "two-tier" || shape === "cat-y2k" || shape === "puppy-bow";
   const radialScale = size / 16;
   const heightScale = isCelebration ? (0.85 + ((size - 10) / 14) * 0.25) : (size / 16) * 1.05;
   const groupScale: [number, number, number] = isCelebration
@@ -1115,211 +1412,284 @@ export function FullCrossSectionCutaway({
   const isDaily =
     shape === "cinnamon-roll" ||
     shape === "croissant" ||
+    shape === "croissant-bow" ||
     shape === "egg-tart" ||
-    shape === "cookie";
+    shape === "cookie" ||
+    shape === "cookie-bear";
+
+  // Staggered non-overlapping badge positions
+  const labelL5Pos: [number, number, number] = [1.45, 0.45, 0.75];
+  const labelL4Pos: [number, number, number] = [1.60, 0.20, 0.55];
+  const labelL3Pos: [number, number, number] = [1.70, -0.05, 0.40];
+  const labelL2Pos: [number, number, number] = [1.55, -0.30, 0.65];
+  const labelL1Pos: [number, number, number] = [1.40, -0.55, 0.80];
 
   return (
     <group scale={groupScale} position={[0, -0.2, 0]}>
-      {/* 3/4 Outer Frosting Shell */}
-      <mesh position={[0, 0, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[1.5, 1.5, 1.0, 64, 1, false, 0, Math.PI * 1.5]} />
-        <meshPhysicalMaterial
-          color={frostingColor}
-          roughness={finish === "mirror-glaze" ? 0.04 : finish === "velvet-spray" ? 0.85 : 0.32}
-          metalness={0.01}
-          clearcoat={finish === "mirror-glaze" ? 1.0 : 0.15}
-          clearcoatRoughness={0.4}
-          sheen={0.65}
-          sheenRoughness={0.5}
-          sheenColor={new THREE.Color("#FFF5EA")}
-          transmission={finish === "mirror-glaze" ? 0.15 : 0.08}
-          thickness={0.6}
-          attenuationColor={new THREE.Color("#FFE5D9")}
-          bumpMap={finish === "rustic-buttercream" ? (frostingBumpMap || undefined) : undefined}
-          bumpScale={0.018}
-        />
-      </mesh>
-
-      {/* Layer 1: Base Crust / Feuilletine Crunch */}
-      <mesh position={[0, -0.44, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[1.46, 1.46, 0.1, 64, 1, false, 0, Math.PI * 1.5]} />
-        <meshStandardMaterial
-          color={shape === "croissant" ? "#D48B38" : shape === "egg-tart" ? "#C68B59" : "#B07D4F"}
-          roughness={0.9}
-        />
-      </mesh>
-
-      {/* Layer 2: Main Sponge / Pastry Core with Alvéolage Crumb Porosity */}
-      <mesh position={[0, -0.26, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[1.46, 1.46, 0.26, 64, 1, false, 0, Math.PI * 1.5]} />
-        <meshPhysicalMaterial
-          color={
-            shape === "cinnamon-roll"
-              ? "#C89666"
-              : shape === "croissant"
-              ? "#F0D399"
-              : shape === "egg-tart"
-              ? "#FFA000"
-              : shape === "cookie"
-              ? "#4A2E1B"
-              : spongeObj?.color || "#F7E7B4"
-          }
-          roughness={0.88}
-          bumpMap={crumbBumpMap || undefined}
-          bumpScale={0.035}
-        />
-      </mesh>
-
-      {/* Layer 3: Compote / Swirl / Honeycomb Layer */}
-      {(gelee !== "none" || isDaily) && (
-        <mesh position={[0, -0.07, 0]} castShadow receiveShadow>
-          <cylinderGeometry args={[1.46, 1.46, 0.12, 64, 1, false, 0, Math.PI * 1.5]} />
-          <meshPhysicalMaterial
-            color={
-              shape === "cinnamon-roll"
-                ? "#5C381E"
-                : shape === "croissant"
-                ? "#E8A856"
-                : shape === "egg-tart"
-                ? "#FFB300"
-                : shape === "cookie"
-                ? "#2B1810"
-                : geleeObj?.color || "#B8002E"
-            }
-            roughness={0.1}
-            transmission={isDaily ? 0.05 : 0.4}
-            thickness={0.5}
-            clearcoat={0.8}
-          />
-        </mesh>
-      )}
-
-      {/* Layer 4: Mousse / Custard / Cream Filling */}
-      <mesh position={[0, 0.12, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[1.46, 1.46, 0.26, 64, 1, false, 0, Math.PI * 1.5]} />
-        <meshStandardMaterial
-          color={
-            shape === "cinnamon-roll"
-              ? "#FFFDF5"
-              : shape === "croissant"
-              ? "#F5E1B5"
-              : shape === "egg-tart"
-              ? "#FFC107"
-              : shape === "cookie"
-              ? "#3D2314"
-              : mousseObj?.color || "#FFFDF5"
-          }
-          roughness={0.4}
-        />
-      </mesh>
-
-      {/* Layer 5: Top Cream / Glaze Coating */}
-      <mesh position={[0, 0.38, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[1.46, 1.46, 0.24, 64, 1, false, 0, Math.PI * 1.5]} />
-        <meshPhysicalMaterial color={frostingColor} roughness={0.3} transmission={0.05} />
-      </mesh>
-
-      {/* Extracted Floating Cut Wedge */}
-      <group position={[0.65, 0.18, 0.65]} rotation={[0, Math.PI * 0.25, 0]}>
-        <mesh castShadow receiveShadow>
-          <cylinderGeometry args={[1.48, 1.48, 1.0, 32, 1, false, 0, Math.PI * 0.45]} />
-          <meshPhysicalMaterial
-            color={frostingColor}
-            roughness={0.3}
-            transmission={0.08}
-            clearcoat={0.3}
-          />
-        </mesh>
-      </group>
-
-      {/* Smart Pâtissier Guardrail: 4 Central Support Dowels Ø6mm + Center Cake Board */}
-      {(size >= 20 || shape === "two-tier") && (
+      {/* Render Shape-Aware Cutaway Mesh */}
+      {shape === "rectangle" ? (
+        // RECTANGULAR BAROQUE ACCURATE CUTAWAY (Front-Right Quadrant Sliced)
         <group>
-          {[
-            [0.52, -0.05, 0.52],
-            [-0.52, -0.05, 0.52],
-            [-0.52, -0.05, -0.52],
-            [0.52, -0.05, -0.52],
-          ].map((pos, idx) => (
-            <mesh key={`cutaway-dowel-${idx}`} position={pos as [number, number, number]} castShadow>
-              <cylinderGeometry args={[0.045, 0.045, 0.9, 16]} />
-              <meshStandardMaterial color="#D2A679" roughness={0.65} metalness={0.05} />
+          {/* Back-Left intact quadrant */}
+          <mesh position={[-0.75, 0, -0.55]} castShadow receiveShadow>
+            <boxGeometry args={[1.5, 1.0, 1.1]} />
+            <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
+          </mesh>
+          {/* Back-Right intact quadrant */}
+          <mesh position={[0.75, 0, -0.55]} castShadow receiveShadow>
+            <boxGeometry args={[1.5, 1.0, 1.1]} />
+            <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
+          </mesh>
+          {/* Front-Left intact quadrant */}
+          <mesh position={[-0.75, 0, 0.55]} castShadow receiveShadow>
+            <boxGeometry args={[1.5, 1.0, 1.1]} />
+            <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
+          </mesh>
+
+          {/* Front-Right EXPOSED INTERNAL LAYERS */}
+          <group position={[0.75, 0, 0.55]}>
+            {/* L1 Crunch Base */}
+            <mesh position={[0, -0.45, 0]} castShadow>
+              <boxGeometry args={[1.48, 0.1, 1.08]} />
+              <meshStandardMaterial color="#B07D4F" roughness={0.9} />
             </mesh>
-          ))}
-          {/* Internal Center Cake Board for Tier Stability */}
-          {shape === "two-tier" && (
-            <mesh position={[0, 0.05, 0]}>
-              <cylinderGeometry args={[1.05, 1.05, 0.025, 32, 1, false, 0, Math.PI * 1.5]} />
-              <meshStandardMaterial color="#E0D7C6" roughness={0.4} />
+            {/* L2 Rectangular Sponge */}
+            <mesh position={[0, -0.27, 0]} castShadow>
+              <boxGeometry args={[1.48, 0.26, 1.08]} />
+              <meshPhysicalMaterial
+                color={spongeObj?.color || "#F7E7B4"}
+                roughness={0.88}
+                bumpMap={crumbBumpMap || undefined}
+                bumpScale={0.035}
+              />
+            </mesh>
+            {/* L3 Compote */}
+            {gelee !== "none" && (
+              <mesh position={[0, -0.08, 0]} castShadow>
+                <boxGeometry args={[1.48, 0.12, 1.08]} />
+                <meshPhysicalMaterial
+                  color={geleeObj?.color || "#B8002E"}
+                  roughness={0.1}
+                  transmission={0.4}
+                />
+              </mesh>
+            )}
+            {/* L4 Mousse */}
+            <mesh position={[0, 0.11, 0]} castShadow>
+              <boxGeometry args={[1.48, 0.26, 1.08]} />
+              <meshStandardMaterial color={mousseObj?.color || "#FFFDF5"} roughness={0.4} />
+            </mesh>
+            {/* L5 Top Frosting Layer */}
+            <mesh position={[0, 0.38, 0]} castShadow>
+              <boxGeometry args={[1.48, 0.24, 1.08]} />
+              <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
+            </mesh>
+          </group>
+
+          {/* 4 Wooden Dowels Ø6mm in rectangle corners */}
+          <group>
+            {[
+              [0.55, 0, 0.45],
+              [-0.55, 0, 0.45],
+              [-0.55, 0, -0.45],
+              [0.55, 0, -0.45],
+            ].map((pos, idx) => (
+              <mesh key={`rect-dowel-${idx}`} position={pos as [number, number, number]} castShadow>
+                <cylinderGeometry args={[0.045, 0.045, 0.92, 16]} />
+                <meshStandardMaterial color="#D2A679" roughness={0.65} />
+              </mesh>
+            ))}
+          </group>
+        </group>
+      ) : (
+        // ROUND / TIERED / HEART RADIAL CUTAWAY
+        <group>
+          {/* 3/4 Outer Frosting Shell */}
+          <mesh position={[0, 0, 0]} castShadow receiveShadow>
+            <cylinderGeometry args={[1.5, 1.5, 1.0, 64, 1, false, 0, Math.PI * 1.5]} />
+            <meshPhysicalMaterial
+              color={frostingColor}
+              roughness={finish === "mirror-glaze" ? 0.04 : finish === "velvet-spray" ? 0.85 : 0.32}
+              metalness={0.01}
+              clearcoat={finish === "mirror-glaze" ? 1.0 : 0.15}
+              bumpMap={finish === "rustic-buttercream" ? (frostingBumpMap || undefined) : undefined}
+              bumpScale={0.018}
+            />
+          </mesh>
+
+          {/* Layer 1: Base Crust */}
+          <mesh position={[0, -0.44, 0]} castShadow receiveShadow>
+            <cylinderGeometry args={[1.46, 1.46, 0.1, 64, 1, false, 0, Math.PI * 1.5]} />
+            <meshStandardMaterial
+              color={shape === "croissant" ? "#D48B38" : shape === "egg-tart" ? "#C68B59" : "#B07D4F"}
+              roughness={0.9}
+            />
+          </mesh>
+
+          {/* Layer 2: Main Sponge / Pastry Core */}
+          <mesh position={[0, -0.26, 0]} castShadow receiveShadow>
+            <cylinderGeometry args={[1.46, 1.46, 0.26, 64, 1, false, 0, Math.PI * 1.5]} />
+            <meshPhysicalMaterial
+              color={
+                shape === "cinnamon-roll"
+                  ? "#C89666"
+                  : shape === "croissant" || shape === "croissant-bow"
+                  ? "#F0D399"
+                  : shape === "egg-tart"
+                  ? "#FFA000"
+                  : shape === "cookie" || shape === "cookie-bear"
+                  ? "#4A2E1B"
+                  : spongeObj?.color || "#F7E7B4"
+              }
+              roughness={0.88}
+              bumpMap={crumbBumpMap || undefined}
+              bumpScale={0.035}
+            />
+          </mesh>
+
+          {/* Layer 3: Compote / Swirl */}
+          {(gelee !== "none" || isDaily) && (
+            <mesh position={[0, -0.07, 0]} castShadow receiveShadow>
+              <cylinderGeometry args={[1.46, 1.46, 0.12, 64, 1, false, 0, Math.PI * 1.5]} />
+              <meshPhysicalMaterial
+                color={
+                  shape === "cinnamon-roll"
+                    ? "#5C381E"
+                    : shape === "croissant" || shape === "croissant-bow"
+                    ? "#E8A856"
+                    : shape === "egg-tart"
+                    ? "#FFB300"
+                    : shape === "cookie" || shape === "cookie-bear"
+                    ? "#2B1810"
+                    : geleeObj?.color || "#B8002E"
+                }
+                roughness={0.1}
+                transmission={isDaily ? 0.05 : 0.4}
+                thickness={0.5}
+                clearcoat={0.8}
+              />
             </mesh>
           )}
-          {/* Engineering Callout for Dowels */}
-          <Html position={[0.65, 0.0, 0.65]} center>
-            <div className="bg-amber-900/95 backdrop-blur-md text-amber-100 px-2.5 py-1 rounded-lg border border-amber-400 shadow-md text-[9px] font-bold whitespace-nowrap animate-pulse">
-              🛡️ 4x Trụ Dowel Gỗ Ø6mm + Đế Lót (Gia Cố Kết Cấu)
-            </div>
-          </Html>
+
+          {/* Layer 4: Mousse / Custard */}
+          <mesh position={[0, 0.12, 0]} castShadow receiveShadow>
+            <cylinderGeometry args={[1.46, 1.46, 0.26, 64, 1, false, 0, Math.PI * 1.5]} />
+            <meshStandardMaterial
+              color={
+                shape === "cinnamon-roll"
+                  ? "#FFFDF5"
+                  : shape === "croissant" || shape === "croissant-bow"
+                  ? "#F5E1B5"
+                  : shape === "egg-tart"
+                  ? "#FFC107"
+                  : shape === "cookie" || shape === "cookie-bear"
+                  ? "#3D2314"
+                  : mousseObj?.color || "#FFFDF5"
+              }
+              roughness={0.4}
+            />
+          </mesh>
+
+          {/* Layer 5: Top Cream / Glaze Coating */}
+          <mesh position={[0, 0.38, 0]} castShadow receiveShadow>
+            <cylinderGeometry args={[1.46, 1.46, 0.24, 64, 1, false, 0, Math.PI * 1.5]} />
+            <meshPhysicalMaterial color={frostingColor} roughness={0.3} transmission={0.05} />
+          </mesh>
+
+          {/* Extracted Floating Cut Wedge */}
+          <group position={[0.65, 0.18, 0.65]} rotation={[0, Math.PI * 0.25, 0]}>
+            <mesh castShadow receiveShadow>
+              <cylinderGeometry args={[1.48, 1.48, 1.0, 32, 1, false, 0, Math.PI * 0.45]} />
+              <meshPhysicalMaterial color={frostingColor} roughness={0.3} transmission={0.08} />
+            </mesh>
+          </group>
+
+          {/* 4 Central Support Dowels Ø6mm */}
+          {(size >= 20 || shape === "two-tier") && (
+            <group>
+              {[
+                [0.52, -0.05, 0.52],
+                [-0.52, -0.05, 0.52],
+                [-0.52, -0.05, -0.52],
+                [0.52, -0.05, -0.52],
+              ].map((pos, idx) => (
+                <mesh key={`cutaway-dowel-${idx}`} position={pos as [number, number, number]} castShadow>
+                  <cylinderGeometry args={[0.045, 0.045, 0.9, 16]} />
+                  <meshStandardMaterial color="#D2A679" roughness={0.65} metalness={0.05} />
+                </mesh>
+              ))}
+              <Html position={[0.65, 0.0, 0.65]} center>
+                <div className="bg-amber-900/95 backdrop-blur-md text-amber-100 px-2.5 py-1 rounded-lg border border-amber-400 shadow-md text-[9px] font-bold whitespace-nowrap animate-pulse">
+                  🛡️ 4x Trụ Dowel Gỗ Ø6mm + Đế Lót (Gia Cố Kết Cấu)
+                </div>
+              </Html>
+            </group>
+          )}
         </group>
       )}
 
-      {/* Engineering Callouts */}
-      <Html position={[1.65, 0.42, 0]} center>
+      {/* Non-Overlapping Staggered Callout Badges */}
+      <Html position={labelL5Pos} center>
         <div className="bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-lg border border-wishes-pink shadow-md text-[9px] font-bold text-wishes-chocolate whitespace-nowrap animate-pulse">
           {shape === "cinnamon-roll"
             ? "🧁 L5: Warm Vanilla Icing Glaze (12mm)"
-            : shape === "croissant"
+            : shape === "croissant" || shape === "croissant-bow"
             ? "🥐 L5: Caramelized Golden Flakes (8mm)"
             : shape === "egg-tart"
             ? "🍮 L5: Crème Brûlée Blister Top (6mm)"
-            : shape === "cookie"
+            : shape === "cookie" || shape === "cookie-bear"
             ? "🍪 L5: Valrhona Ganache Glaze (10mm)"
             : `🍰 L5: ${mousseObj?.name.split(" ")[0]} Top (15mm)`}
         </div>
       </Html>
-      <Html position={[1.65, 0.12, 0]} center>
+
+      <Html position={labelL4Pos} center>
         <div className="bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-lg border border-wishes-pink shadow-md text-[9px] font-bold text-wishes-cherry whitespace-nowrap">
           {shape === "cinnamon-roll"
             ? "🍨 L4: Mascarpone Cream Cheese (25mm)"
-            : shape === "croissant"
+            : shape === "croissant" || shape === "croissant-bow"
             ? "🥐 L4: Alvéolage Honeycomb Crumb (35mm)"
             : shape === "egg-tart"
             ? "🍮 L4: Silky Egg Custard Center (28mm)"
-            : shape === "cookie"
+            : shape === "cookie" || shape === "cookie-bear"
             ? "🍫 L4: Molten Chocolate Pockets (22mm)"
             : `🍨 L4: ${mousseObj?.name} (25mm)`}
         </div>
       </Html>
+
       {(gelee !== "none" || isDaily) && (
-        <Html position={[1.65, -0.07, 0]} center>
+        <Html position={labelL3Pos} center>
           <div className="bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-lg border border-red-300 shadow-md text-[9px] font-bold text-red-700 whitespace-nowrap">
             {shape === "cinnamon-roll"
               ? "🌿 L3: Valrhona Cinnamon Swirl (12mm)"
-              : shape === "croissant"
+              : shape === "croissant" || shape === "croissant-bow"
               ? "🧈 L3: Tourage Butter Sheen (15mm)"
               : shape === "egg-tart"
               ? "🍯 L3: Vanilla Custard Infusion (12mm)"
-              : shape === "cookie"
+              : shape === "cookie" || shape === "cookie-bear"
               ? "🌰 L3: Roasted Hazelnut Core (14mm)"
               : `🍓 L3: ${geleeObj?.name.split("(")[0]} (15mm)`}
           </div>
         </Html>
       )}
-      <Html position={[1.65, -0.26, 0]} center>
+
+      <Html position={labelL2Pos} center>
         <div className="bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-lg border border-yellow-300 shadow-md text-[9px] font-bold text-amber-900 whitespace-nowrap">
           {shape === "cinnamon-roll"
             ? "🌾 L2: Fluffy Cardamom Brioche (35mm)"
-            : shape === "croissant"
+            : shape === "croissant" || shape === "croissant-bow"
             ? "🌾 L2: French Tourage Dough (81 Layers)"
             : shape === "egg-tart"
             ? "🌾 L2: Mille-Feuille Tart Shell (30mm)"
-            : shape === "cookie"
+            : shape === "cookie" || shape === "cookie-bear"
             ? "🌾 L2: Fudgy Butter Dough (32mm)"
             : `🌾 L2: ${spongeObj?.name} (35mm)`}
         </div>
       </Html>
-      <Html position={[1.65, -0.45, 0]} center>
+
+      <Html position={labelL1Pos} center>
         <div className="bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-lg border border-amber-500 shadow-md text-[9px] font-bold text-amber-950 whitespace-nowrap">
-          {shape === "croissant" || shape === "egg-tart"
+          {shape === "croissant" || shape === "croissant-bow" || shape === "egg-tart"
             ? "🥐 L1: Crisp Flaky Butter Base (10mm)"
             : "🍪 L1: Feuilletine Crunch Base (10mm)"}
         </div>

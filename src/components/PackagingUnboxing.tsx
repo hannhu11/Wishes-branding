@@ -71,7 +71,7 @@ function HouseBox3DMesh({
         />
       </mesh>
 
-      {/* 2. INNER SLIDING TRAY & SURPRISE CAKE */}
+      {/* 2. INNER SLIDING TRAY & SURPRISE SIGNATURE CAKE */}
       <group position={[0, trayY, 0]}>
         {/* Tray Base */}
         <mesh castShadow receiveShadow position={[0, 0, 0]}>
@@ -79,60 +79,101 @@ function HouseBox3DMesh({
           <meshStandardMaterial color="#FFF9E6" roughness={0.5} />
         </mesh>
 
-        {/* Signature Miniature Celebration Cake inside tray */}
-        <group position={[0, 0.3, 0]} scale={[0.55, 0.55, 0.55]}>
+        {/* Front Satin Ribbon Tag on Tray */}
+        <mesh position={[0, 0.06, 0.88]} rotation={[0, 0, 0]}>
+          <boxGeometry args={[0.42, 0.04, 0.14]} />
+          <meshPhysicalMaterial color="#A0C4FF" roughness={0.3} sheen={1} />
+        </mesh>
+
+        {/* Signature Celebration Cake inside tray (Cotton Candy Pink with Lambeth white trim & ruby cherry) */}
+        <group position={[0, 0.32, 0]} scale={[0.55, 0.55, 0.55]}>
+          {/* Main Cake Body */}
           <mesh castShadow receiveShadow>
-            <cylinderGeometry args={[1.0, 1.0, 0.6, 32]} />
-            <meshStandardMaterial color="#FFF9E6" roughness={0.3} />
+            <cylinderGeometry args={[1.0, 1.0, 0.65, 32]} />
+            <meshPhysicalMaterial
+              color="#FFAEC9"
+              roughness={0.28}
+              clearcoat={0.35}
+              sheen={0.6}
+              sheenColor={new THREE.Color("#FFF5EA")}
+            />
           </mesh>
-          <mesh position={[0, 0.35, 0]} castShadow>
-            <sphereGeometry args={[0.22, 24, 24]} />
-            <meshPhysicalMaterial color="#FF1A4B" roughness={0.05} clearcoat={1.0} />
+
+          {/* Lambeth White Cream Piping Ring */}
+          <mesh position={[0, 0.33, 0]} castShadow>
+            <torusGeometry args={[0.92, 0.06, 12, 32]} />
+            <meshPhysicalMaterial color="#FFFDF5" roughness={0.25} clearcoat={0.3} />
+          </mesh>
+
+          {/* Glossy Ruby Cherry with Stem on Top */}
+          <mesh position={[0, 0.44, 0]} castShadow>
+            <sphereGeometry args={[0.16, 24, 24]} />
+            <meshPhysicalMaterial
+              color="#E6194B"
+              roughness={0.05}
+              clearcoat={1.0}
+              clearcoatRoughness={0.03}
+            />
+          </mesh>
+          {/* Cherry Stem */}
+          <mesh position={[0.02, 0.58, 0]} rotation={[0, 0, -0.3]}>
+            <cylinderGeometry args={[0.008, 0.008, 0.16, 8]} />
+            <meshStandardMaterial color="#5C8001" roughness={0.4} />
           </mesh>
         </group>
 
-        {/* Golden Wishes Enamel Pin on the tray */}
-        <mesh position={[0.55, 0.08, 0.55]} rotation={[Math.PI / 2, 0, 0.4]} castShadow>
-          <cylinderGeometry args={[0.18, 0.18, 0.03, 24]} />
-          <meshStandardMaterial color="#FFDF00" metalness={0.95} roughness={0.1} />
+        {/* Golden Wishes Enamel Pin neatly resting on the front ribbon tag without clipping */}
+        <group position={[0, 0.14, 0.88]} rotation={[-0.15, 0, 0]}>
+          <mesh castShadow>
+            <cylinderGeometry args={[0.12, 0.12, 0.02, 24]} />
+            <meshStandardMaterial color="#FFDF00" metalness={0.95} roughness={0.15} />
+          </mesh>
+          <mesh position={[0, 0.012, 0]}>
+            <cylinderGeometry args={[0.1, 0.1, 0.008, 24]} />
+            <meshPhysicalMaterial color="#FFFDF5" roughness={0.1} clearcoat={0.8} />
+          </mesh>
+          <mesh position={[0, 0.018, 0]}>
+            <boxGeometry args={[0.05, 0.005, 0.05]} />
+            <meshPhysicalMaterial color="#FF3366" roughness={0.2} />
+          </mesh>
+        </group>
+      </group>
+
+      {/* 3. ROOF LEFT FLAP (Smooth pivot around top left wall hinge x = -1.0, y = 0.3) */}
+      <group position={[-1.0, 0.3, 0]} rotation={[0, 0, leftFlapAngle * 1.8]}>
+        {/* Sloped roof panel extending to center ridge */}
+        <mesh position={[0.55, 0.38, 0]} rotation={[0, 0, 0.61]} castShadow receiveShadow>
+          <boxGeometry args={[1.22, 0.05, 2.0]} />
+          <meshPhysicalMaterial color="#FFAEC9" roughness={0.35} clearcoat={0.15} />
         </mesh>
       </group>
 
-      {/* 3. ROOF LEFT FLAP (Cánh mái nhà trái có bản lề) */}
-      <group position={[-1.0, 0.3, 0]} rotation={[0, 0, leftFlapAngle]}>
-        <mesh position={[0.5, 0.4, 0]} rotation={[0, 0, Math.PI * 0.18]} castShadow>
-          <boxGeometry args={[1.15, 0.06, 1.98]} />
-          <meshStandardMaterial color="#FFB8CE" roughness={0.35} />
+      {/* 4. ROOF RIGHT FLAP (Smooth pivot around top right wall hinge x = 1.0, y = 0.3) */}
+      <group position={[1.0, 0.3, 0]} rotation={[0, 0, rightFlapAngle * 1.8]}>
+        {/* Sloped roof panel extending to center ridge */}
+        <mesh position={[-0.55, 0.38, 0]} rotation={[0, 0, -0.61]} castShadow receiveShadow>
+          <boxGeometry args={[1.22, 0.05, 2.0]} />
+          <meshPhysicalMaterial color="#FFAEC9" roughness={0.35} clearcoat={0.15} />
         </mesh>
       </group>
 
-      {/* 4. ROOF RIGHT FLAP (Cánh mái nhà phải có bản lề) */}
-      <group position={[1.0, 0.3, 0]} rotation={[0, 0, rightFlapAngle]}>
-        <mesh position={[-0.5, 0.4, 0]} rotation={[0, 0, -Math.PI * 0.18]} castShadow>
-          <boxGeometry args={[1.15, 0.06, 1.98]} />
-          <meshStandardMaterial color="#FFB8CE" roughness={0.35} />
-        </mesh>
-      </group>
-
-      {/* 5. GABLE TRIANGULAR WALLS (Hai đầu hồi tam giác) */}
+      {/* 5. GABLE TRIANGULAR WALLS (Attached solidly to front and back house walls) */}
       <group position={[0, 0.3, 0]}>
-        {/* Front Gable */}
-        <mesh
-          position={[0, 0.35, 0.99]}
-          rotation={[0, 0, 0]}
-          scale={[roofOpenRatio > 0.4 ? 1 - (roofOpenRatio - 0.4) * 1.5 : 1, 1, 1]}
-        >
-          <coneGeometry args={[1.0, 0.75, 4]} />
-          <meshStandardMaterial color="#A0C4FF" roughness={0.4} />
+        {/* Front Gable Wall with boutique Heart Window */}
+        <mesh position={[0, 0.35, 0.99]} castShadow receiveShadow>
+          <cylinderGeometry args={[0, 1.414, 0.7, 4, 1, false, Math.PI / 4]} />
+          <meshStandardMaterial color="#FFAEC9" roughness={0.35} />
         </mesh>
-        {/* Back Gable */}
-        <mesh
-          position={[0, 0.35, -0.99]}
-          rotation={[0, 0, 0]}
-          scale={[roofOpenRatio > 0.4 ? 1 - (roofOpenRatio - 0.4) * 1.5 : 1, 1, 1]}
-        >
-          <coneGeometry args={[1.0, 0.75, 4]} />
-          <meshStandardMaterial color="#A0C4FF" roughness={0.4} />
+        {/* Gold Foil Heart Emblem on Front Gable */}
+        <mesh position={[0, 0.28, 1.01]}>
+          <planeGeometry args={[0.32, 0.32]} />
+          <meshStandardMaterial color="#FFD700" metalness={0.9} roughness={0.15} />
+        </mesh>
+
+        {/* Back Gable Wall */}
+        <mesh position={[0, 0.35, -0.99]} castShadow receiveShadow>
+          <cylinderGeometry args={[0, 1.414, 0.7, 4, 1, false, Math.PI / 4]} />
+          <meshStandardMaterial color="#FFAEC9" roughness={0.35} />
         </mesh>
       </group>
 
