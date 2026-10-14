@@ -27,8 +27,17 @@ import {
   CustardEggTartMesh,
   ArtisanalCookieMesh,
   FullCrossSectionCutaway,
+  createFrostingBumpMap,
+  createCrumbBumpMap,
+  ViscousDripRim,
 } from "./PastryGeometries";
-import { strokeTo3DCurve, renderPipingToCanvas } from "./SmartPipingEngine";
+import {
+  strokeTo3DCurve,
+  renderPipingToCanvas,
+  createTaperedFlutedTubeGeometry,
+  createFlutedRosetteGeometry,
+  createPipingBumpMap,
+} from "./SmartPipingEngine";
 
 interface Cake3DSceneProps {
   shape: CakeShape;
@@ -43,6 +52,7 @@ interface Cake3DSceneProps {
   toppings: ToppingConfig;
   isCutawayMode: boolean;
   drawingState: SmartDrawingState;
+  activeStep?: number;
 }
 
 export default function Cake3DScene({
@@ -58,42 +68,71 @@ export default function Cake3DScene({
   toppings,
   isCutawayMode,
   drawingState,
+  activeStep = 1,
 }: Cake3DSceneProps) {
   const cakeGroupRef = useRef<THREE.Group>(null);
   const heartGeometry = useWonkyHeartGeometry();
   const rectangleGeometry = useBaroqueRectangleGeometry();
 
-  const scale = (size / 16) * 1.05;
+  // Procedural Textures generated in-memory (Material Truth)
+  const frostingBumpMap = useMemo(() => createFrostingBumpMap(), []);
+  const crumbBumpMap = useMemo(() => createCrumbBumpMap(), []);
+  const pipingBumpMap = useMemo(() => createPipingBumpMap(), []);
 
-  // Material settings according to Finish (Material Truth)
+  // Non-uniform realistic size scaling: mini cakes remain chubby & tall, larger cakes expand wider proportionally
+  const isCelebrationCake =
+    shape === "round" || shape === "heart" || shape === "rectangle" || shape === "two-tier";
+  const radialScale = size / 16;
+  const heightScale = isCelebrationCake ? 0.85 + ((size - 10) / 14) * 0.25 : (size / 16) * 1.05;
+  const groupScale: [number, number, number] = isCelebrationCake
+    ? [radialScale, heightScale, radialScale]
+    : [(size / 16) * 1.05, (size / 16) * 1.05, (size / 16) * 1.05];
+
+  // Material settings according to Finish (Haute Pâtisserie SSS)
   const materialProps = useMemo(() => {
     if (finish === "mirror-glaze") {
       return {
         roughness: 0.04,
+        metalness: 0.02,
         clearcoat: 1.0,
-        clearcoatRoughness: 0.05,
+        clearcoatRoughness: 0.03,
         reflectivity: 0.95,
-        transmission: 0.08,
+        transmission: 0.15,
         thickness: 1.2,
+        ior: 1.48,
+        attenuationColor: new THREE.Color(frostingColor),
       };
     }
     if (finish === "velvet-spray") {
       return {
         roughness: 0.82,
-        clearcoat: 0.05,
+        metalness: 0.0,
+        sheen: 0.85,
+        sheenRoughness: 0.7,
+        sheenColor: new THREE.Color("#FFF0F5"),
+        clearcoat: 0.02,
         transmission: 0.02,
         thickness: 0.6,
+        bumpMap: crumbBumpMap || undefined,
+        bumpScale: 0.012,
       };
     }
-    // Rustic Buttercream
+    // Rustic Buttercream with SSS (Warm Core & Palette-Knife Swirl Bands)
     return {
-      roughness: 0.38,
-      clearcoat: 0.28,
-      clearcoatRoughness: 0.2,
-      transmission: 0.06,
-      thickness: 1.0,
+      roughness: 0.32,
+      metalness: 0.01,
+      clearcoat: 0.15,
+      clearcoatRoughness: 0.4,
+      sheen: 0.65,
+      sheenRoughness: 0.5,
+      sheenColor: new THREE.Color("#FFF5EA"),
+      transmission: 0.08,
+      thickness: 0.6,
+      attenuationColor: new THREE.Color("#FFE5D9"),
+      bumpMap: frostingBumpMap || undefined,
+      bumpScale: 0.018,
     };
-  }, [finish]);
+  }, [finish, frostingColor, frostingBumpMap, crumbBumpMap]);
 
   // Determine top surface plane height and radius dynamically for any shape
   const { surfaceY, surfaceRadius } = useMemo(() => {
@@ -144,7 +183,7 @@ export default function Cake3DScene({
     canvasTexture.needsUpdate = true;
   }, [dynamicCanvas, canvasTexture, drawingState.customText, drawingState.presetText, drawingState.textColor]);
 
-  // 3D Volumetric Tubes for Multi-point Hand-Piped Strokes
+  // 3D Volumetric Tubes for Multi-point Hand-Piped Strokes with Fluted Star Nozzle & Taper
   const tubeGeometries = useMemo(() => {
     return drawingState.strokes
       .map((stroke) => {
@@ -152,14 +191,14 @@ export default function Cake3DScene({
         const curve = strokeTo3DCurve(stroke, surfaceRadius, surfaceY + 0.005);
         if (!curve) return null;
         return {
-          geom: new THREE.TubeGeometry(curve, 36, stroke.gauge * 0.016, 8, false),
+          geom: createTaperedFlutedTubeGeometry(curve, stroke.gauge * 0.018, 8, 40),
           color: stroke.color,
         };
       })
       .filter(Boolean);
   }, [drawingState.strokes, surfaceRadius, surfaceY]);
 
-  // 3D Volumetric Cream Beads / Dollops for Single-Point Taps
+  // 3D Volumetric Cream Beads / Rosettes for Single-Point Taps
   const singlePointBeads = useMemo(() => {
     return drawingState.strokes
       .filter((s) => s.points && s.points.length === 1)
@@ -167,19 +206,22 @@ export default function Cake3DScene({
         const pt = s.points[0];
         const x3d = (pt.x - 0.5) * (surfaceRadius * 1.5);
         const z3d = (pt.y - 0.5) * (surfaceRadius * 1.5);
+        const radius = s.gauge * 0.024;
         return {
-          position: [x3d, surfaceY + s.gauge * 0.016, z3d] as [number, number, number],
-          radius: s.gauge * 0.022,
+          position: [x3d, surfaceY + 0.002, z3d] as [number, number, number],
+          geom: createFlutedRosetteGeometry(radius, 8, 8),
           color: s.color,
         };
       });
   }, [drawingState.strokes, surfaceRadius, surfaceY]);
 
-  // Subtle floating idle motion
+  // Subtle floating idle motion with Wonky Charm tilt
   useFrame((state) => {
     if (!cakeGroupRef.current || isCutawayMode) return;
     const t = state.clock.getElapsedTime();
-    cakeGroupRef.current.position.y = Math.sin(t * 1.2) * 0.03;
+    cakeGroupRef.current.position.y = -0.2 + Math.sin(t * 1.2) * 0.025;
+    cakeGroupRef.current.rotation.x = 0.018 + Math.sin(t * 0.8) * 0.002;
+    cakeGroupRef.current.rotation.z = -0.015 + Math.cos(t * 0.7) * 0.002;
   });
 
   // If in cutaway mode, render full 5-layer engineering cross-section
@@ -197,11 +239,13 @@ export default function Cake3DScene({
     );
   }
 
-  const isCelebrationCake =
-    shape === "round" || shape === "heart" || shape === "rectangle" || shape === "two-tier";
-
   return (
-    <group ref={cakeGroupRef} scale={[scale, scale, scale]} position={[0, -0.2, 0]}>
+    <group
+      ref={cakeGroupRef}
+      scale={groupScale}
+      position={[0, -0.2, 0]}
+      rotation={[0.018, 0, -0.015]}
+    >
       {/* 1. Main Pastry Body Geometries */}
       {shape === "round" && (
         <group>
@@ -210,6 +254,11 @@ export default function Cake3DScene({
             <cylinderGeometry args={[1.5, 1.5, 1.0, 64]} />
             <meshPhysicalMaterial color={frostingColor} {...materialProps} />
           </mesh>
+
+          {/* Procedural Viscous Drips when Mirror Glaze finish */}
+          {finish === "mirror-glaze" && (
+            <ViscousDripRim radius={1.49} y={0.5} color={frostingColor} />
+          )}
 
           {/* Top Piping Ring */}
           <HautePipingPattern
@@ -391,30 +440,35 @@ export default function Cake3DScene({
         </group>
       )}
 
-      {/* 2. 3D Hand-Drawn Volumetric Cream Tubes */}
+      {/* 2. 3D Hand-Drawn Volumetric Cream Tubes with Longitudinal Fluted Ridges */}
       {tubeGeometries.map(
         (tube, idx) =>
           tube && (
             <mesh key={`tube-${idx}`} geometry={tube.geom} castShadow>
               <meshPhysicalMaterial
                 color={tube.color}
-                roughness={0.25}
-                clearcoat={0.65}
-                clearcoatRoughness={0.15}
+                roughness={0.28}
+                clearcoat={0.4}
+                clearcoatRoughness={0.25}
+                bumpMap={pipingBumpMap || undefined}
+                bumpScale={0.025}
+                sheen={0.45}
+                sheenColor={new THREE.Color("#FFFDF5")}
               />
             </mesh>
           )
       )}
 
-      {/* 3. 3D Cream Beads for Single-Point Taps */}
+      {/* 3. 3D Cream Rosettes for Single-Point Taps */}
       {singlePointBeads.map((bead, idx) => (
-        <mesh key={`bead-${idx}`} position={bead.position} castShadow>
-          <sphereGeometry args={[bead.radius, 16, 16]} />
+        <mesh key={`bead-${idx}`} position={bead.position} geometry={bead.geom} castShadow>
           <meshPhysicalMaterial
             color={bead.color}
-            roughness={0.2}
-            clearcoat={0.8}
-            clearcoatRoughness={0.1}
+            roughness={0.28}
+            clearcoat={0.4}
+            clearcoatRoughness={0.25}
+            sheen={0.45}
+            sheenColor={new THREE.Color("#FFFDF5")}
           />
         </mesh>
       ))}

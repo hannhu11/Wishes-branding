@@ -44,6 +44,7 @@ interface BlueprintModalProps {
   wishText: string;
   handwrittenText?: string;
   aestheticScore: number;
+  estimatedPrice?: string;
 }
 
 export default function BakingBlueprintModal({
@@ -63,6 +64,7 @@ export default function BakingBlueprintModal({
   wishText,
   handwrittenText,
   aestheticScore,
+  estimatedPrice,
 }: BlueprintModalProps) {
   if (!isOpen) return null;
 
@@ -128,6 +130,11 @@ export default function BakingBlueprintModal({
                   Baking Production Blueprint 1:1
                 </span>
                 <span className="text-[10px] text-stone-500 font-mono">SPEC-WISHES-{Date.now().toString().slice(-6)}</span>
+                {estimatedPrice && (
+                  <span className="text-[10px] font-serif font-black text-white bg-wishes-cherry px-2.5 py-0.5 rounded-full shadow-2xs">
+                    {estimatedPrice}
+                  </span>
+                )}
               </div>
               <h3 className="text-xl sm:text-2xl font-serif-swash font-bold text-wishes-chocolate mt-0.5">
                 Hồ Sơ Kỹ Thuật Gia Công Bánh Thủ Công
@@ -160,11 +167,19 @@ export default function BakingBlueprintModal({
               <div>• Hình thái: <strong>{shapeTitle}</strong></div>
               <div>• Kích thước: <strong>Ø {size * 10} mm</strong> (Dung sai cho phép ±5mm)</div>
               <div>• Chiều cao tổng thể: <strong>110 mm</strong> (Cốt bánh 90mm + Bông kem đỉnh 20mm)</div>
-              {shape === "two-tier" && (
-                <div className="text-amber-800 font-bold">• Trục chịu lực ngầm: 4 cọc dowel gỗ sồi thực phẩm Ø10mm</div>
-              )}
               <div>• Trọng lượng dự kiến: <strong>~{size * 70} gram</strong></div>
               <div>• Đế lót bánh: <strong>Giấy bồi ép cứng 350gsm phủ màng chống trượt</strong></div>
+
+              {(shape === "two-tier" || size >= 20) && (
+                <div className="mt-2 p-2 rounded-xl bg-amber-100/80 border border-amber-300 text-[10.5px] text-amber-950 font-medium space-y-0.5">
+                  <div className="font-bold text-amber-900 flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-amber-700 flex-shrink-0" />
+                    <span>Smart Pâtissier Guardrail (Gia Cố Kết Cấu):</span>
+                  </div>
+                  <div>• 4 cọc dowel gỗ sồi thực phẩm Ø6mm trung tâm + Đế lót tầng cứng</div>
+                  <div>• Khóa cốt bánh tầng đáy vững chắc chống sụt lún khi giao nhận qua shipper</div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -211,7 +226,8 @@ export default function BakingBlueprintModal({
               <span>4. BẢO QUẢN & PHỤ KIỆN TRANG TRÍ</span>
             </div>
             <div className="text-wishes-chocolate/85 space-y-1">
-              <div>• Nhiệt độ bảo quản lạnh: <strong>4°C – 6°C</strong> (Độ ẩm 65%)</div>
+              <div>• Nhiệt độ bảo quản lạnh tiêu chuẩn: <strong>2°C – 5°C</strong> (Độ ẩm 65%)</div>
+              <div>• Vận chuyển: <strong>Thùng giữ nhiệt chuyên dụng kèm túi đá gel khô</strong></div>
               <div>• Hạn sử dụng tốt nhất: <strong>72 giờ</strong> sau khi hoàn tất</div>
               <div>
                 • Phụ kiện đính kèm:{" "}

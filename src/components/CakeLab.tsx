@@ -1,7 +1,8 @@
 "use client";
-import React, { useState, useMemo } from "react";
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
+import { OrbitControls, ContactShadows } from "@react-three/drei";
+import * as THREE from "three";
 import {
   Sparkles,
   Heart,
@@ -48,11 +49,114 @@ import SmartPipingPad from "./cake-lab/SmartPipingPad";
 import ProposalPresetsDrawer from "./cake-lab/ProposalPresetsDrawer";
 import BakingBlueprintModal from "./cake-lab/BakingBlueprintModal";
 
+/**
+ * Live Estimated Pricing and Serving Capacity aligned with Proposal (Slides 59-64)
+ */
+export function getCakePricing(shape: CakeShape, size: number) {
+  if (shape === "cinnamon-roll") {
+    return { price: "55.000 VNĐ", priceNum: 55000, serving: "1 người • Khẩu phần sáng" };
+  }
+  if (shape === "croissant") {
+    return { price: "45.000 VNĐ", priceNum: 45000, serving: "1 người • Bơ Pháp 81 lớp" };
+  }
+  if (shape === "egg-tart") {
+    return { price: "35.000 VNĐ", priceNum: 35000, serving: "1 người • Custard Bồ Đào Nha" };
+  }
+  if (shape === "cookie") {
+    return { price: "40.000 VNĐ", priceNum: 40000, serving: "1 người • Soft Cookie New York" };
+  }
+  if (shape === "two-tier") {
+    return { price: "890.000 VNĐ", priceNum: 890000, serving: "15-20 người • Tiệc cưới & Gala" };
+  }
+  switch (size) {
+    case 10:
+      return { price: "135.000 VNĐ", priceNum: 135000, serving: "1-2 người • Bento Mini" };
+    case 12:
+      return { price: "210.000 VNĐ", priceNum: 210000, serving: "2-3 người • Cặp đôi" };
+    case 14:
+      return { price: "290.000 VNĐ", priceNum: 290000, serving: "3-4 người • Nhóm bạn nhỏ" };
+    case 16:
+      return { price: "360.000 VNĐ", priceNum: 360000, serving: "4-6 người • Tiệc gia đình" };
+    case 20:
+      return { price: "480.000 VNĐ", priceNum: 480000, serving: "8-10 người • Sinh nhật lớn" };
+    case 24:
+      return { price: "590.000 VNĐ", priceNum: 590000, serving: "10-14 người • Sự kiện công ty" };
+    default:
+      return { price: "360.000 VNĐ", priceNum: 360000, serving: "4-6 người" };
+  }
+}
+
+/**
+ * Step-Driven Cinematic Camera Rig:
+ * Interpolates camera position and OrbitControls target when user advances steps,
+ * releasing control immediately when user starts manual orbit drag.
+ */
+function CameraRig({
+  activeStep,
+  isCutawayMode,
+  controlsRef,
+}: {
+  activeStep: number;
+  isCutawayMode: boolean;
+  controlsRef: React.RefObject<any>;
+}) {
+  const { camera } = useThree();
+  const isInteractingRef = useRef(false);
+  const targetCamPos = useRef(new THREE.Vector3(0, 1.8, 4.2));
+  const targetLookAt = useRef(new THREE.Vector3(0, 0, 0));
+
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+    const onStart = () => {
+      isInteractingRef.current = true;
+    };
+    const onEnd = () => {
+      isInteractingRef.current = false;
+    };
+    controls.addEventListener("start", onStart);
+    controls.addEventListener("end", onEnd);
+    return () => {
+      controls.removeEventListener("start", onStart);
+      controls.removeEventListener("end", onEnd);
+    };
+  }, [controlsRef]);
+
+  useEffect(() => {
+    isInteractingRef.current = false;
+    if (activeStep === 1) {
+      targetCamPos.current.set(0, 1.8, 4.2);
+      targetLookAt.current.set(0, 0, 0);
+    } else if (activeStep === 2) {
+      targetCamPos.current.set(2.6, 0.7, 2.8);
+      targetLookAt.current.set(0, 0, 0);
+    } else if (activeStep === 3 || activeStep === 4) {
+      targetCamPos.current.set(0, 2.1, 3.7);
+      targetLookAt.current.set(0, 0.1, 0);
+    } else if (activeStep === 5) {
+      targetCamPos.current.set(0, 3.5, 1.8);
+      targetLookAt.current.set(0, 0.3, 0);
+    }
+  }, [activeStep, isCutawayMode]);
+
+  useFrame(() => {
+    if (isInteractingRef.current) return;
+    camera.position.lerp(targetCamPos.current, 0.06);
+    if (controlsRef.current) {
+      controlsRef.current.target.lerp(targetLookAt.current, 0.06);
+      controlsRef.current.update();
+    }
+  });
+
+  return null;
+}
+
 export default function CakeLab() {
   // --- 1. CORE CUSTOMIZATION STATE ---
   const [activeStep, setActiveStep] = useState<number>(1);
   const [showPresetsDrawer, setShowPresetsDrawer] = useState<boolean>(false);
   const [activePresetId, setActivePresetId] = useState<string | undefined>("preset-round-lambeth");
+  const controlsRef = useRef<any>(null);
 
   // Step 1: Shape & Geometry & Sponge
   const [shapeCategory, setShapeCategory] = useState<"celebration" | "daily">("celebration");
@@ -64,6 +168,19 @@ export default function CakeLab() {
   const [gelee, setGelee] = useState<GeleeType>("strawberry-compote");
   const [mousse, setMousse] = useState<MousseType>("mascarpone-chantilly");
   const [isCutawayMode, setIsCutawayMode] = useState<boolean>(false);
+
+  // Live dynamic pricing & serving calculator
+  const currentPricing = useMemo(() => getCakePricing(shape, size), [shape, size]);
+
+  // Step change with automatic cutaway toggle on Stage 2
+  const handleStepChange = (newStep: number) => {
+    if (newStep === 2) {
+      setIsCutawayMode(true);
+    } else if (activeStep === 2 && newStep !== 2) {
+      setIsCutawayMode(false);
+    }
+    setActiveStep(newStep);
+  };
 
   // Step 3: Frosting Finish & Color
   const [finish, setFinish] = useState<FrostingFinish>("rustic-buttercream");
@@ -194,7 +311,7 @@ export default function CakeLab() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* LEFT COLUMN: 3D WebGL Canvas & Stage Indicators (7 Cols) */}
         <div className="lg:col-span-7 lg:sticky lg:top-24 flex flex-col gap-4">
-          <div className="relative w-full aspect-square sm:aspect-[4/3] min-h-[440px] sm:min-h-[500px] lg:min-h-[560px] rounded-3xl glass-panel shadow-dreamy border border-white/80 overflow-hidden flex flex-col justify-between p-4">
+          <div className="relative w-full aspect-square sm:aspect-[4/3] min-h-[440px] sm:min-h-[500px] lg:min-h-[560px] rounded-3xl glass-panel shadow-dreamy border border-white/80 overflow-hidden flex flex-col justify-between p-4 touch-none select-none">
             {/* Top Canvas Bar */}
             <div className="flex items-center justify-between z-10">
               <span className="px-3 py-1.5 rounded-full bg-white/85 text-[10px] font-bold text-wishes-chocolate tracking-wider flex items-center gap-1.5 shadow-sm">
@@ -216,6 +333,20 @@ export default function CakeLab() {
               </button>
             </div>
 
+            {/* Dynamic Live Price & Serving Pill Badge (Top-left floating) */}
+            <div className="absolute top-14 left-4 z-10 flex flex-col gap-1 pointer-events-none">
+              <div className="px-3.5 py-1.5 rounded-2xl bg-white/95 backdrop-blur-md border border-wishes-cherry/40 shadow-dreamy flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-wishes-cherry animate-pulse" />
+                <span className="text-xs font-serif font-black text-wishes-cherry tracking-wide">
+                  {currentPricing.price}
+                </span>
+                <span className="text-[10px] text-stone-300 font-bold">|</span>
+                <span className="text-[10px] font-bold text-wishes-chocolate/85">
+                  {currentPricing.serving}
+                </span>
+              </div>
+            </div>
+
             {/* Three.js Canvas */}
             <div className="absolute inset-0 z-0">
               <Canvas
@@ -224,17 +355,31 @@ export default function CakeLab() {
                 gl={{ antialias: true, alpha: true }}
                 dpr={typeof window !== "undefined" ? Math.min(window.devicePixelRatio, 1.75) : 1}
               >
-                <ambientLight intensity={1.15} />
+                {/* 1. Appetite Studio Lighting (Warm Morning Daylight, No Cold Blue Cast) */}
+                <ambientLight intensity={0.45} color="#FFF8F0" />
                 <directionalLight
                   position={[4, 7, 5]}
-                  intensity={1.8}
-                  color="#FFFDF5"
+                  intensity={1.65}
+                  color="#FFF5EA"
                   castShadow
                   shadow-mapSize-width={1024}
                   shadow-mapSize-height={1024}
                 />
-                <pointLight position={[-4, 3, -3]} intensity={2.2} color="#FFAEC9" />
-                <pointLight position={[3, -2, -2]} intensity={1.5} color="#A0C4FF" />
+                <pointLight position={[-4, 3, 4]} intensity={0.75} color="#FFE5EC" />
+
+                {/* Strictly Back-Lighting for dreamy pastel halo rim without muddying front colors */}
+                <pointLight position={[-3, 3, -4]} intensity={1.4} color="#A0C4FF" />
+                <pointLight position={[3, 2, -4]} intensity={1.4} color="#FFAEC9" />
+
+                {/* Warm Chocolate Contact Shadows */}
+                <ContactShadows
+                  position={[0, -0.82, 0]}
+                  opacity={0.42}
+                  scale={8}
+                  blur={2.2}
+                  far={4}
+                  color="#4A2E1B"
+                />
 
                 <Cake3DScene
                   shape={shape}
@@ -249,14 +394,22 @@ export default function CakeLab() {
                   toppings={toppings}
                   isCutawayMode={isCutawayMode}
                   drawingState={drawingState}
+                  activeStep={activeStep}
+                />
+
+                <CameraRig
+                  activeStep={activeStep}
+                  isCutawayMode={isCutawayMode}
+                  controlsRef={controlsRef}
                 />
 
                 <OrbitControls
+                  ref={controlsRef}
                   enableZoom={true}
-                  minDistance={2.8}
+                  minDistance={2.5}
                   maxDistance={7}
                   maxPolarAngle={Math.PI / 2 + 0.1}
-                  autoRotate={!isCutawayMode}
+                  autoRotate={!isCutawayMode && activeStep !== 5}
                   autoRotateSpeed={0.8}
                 />
               </Canvas>
@@ -321,7 +474,7 @@ export default function CakeLab() {
               return (
                 <button
                   key={step.num}
-                  onClick={() => setActiveStep(step.num)}
+                  onClick={() => handleStepChange(step.num)}
                   className={`flex flex-col items-center gap-1 p-1.5 rounded-xl transition-all ${
                     isActive
                       ? "text-wishes-cherry font-bold scale-105"
@@ -437,25 +590,52 @@ export default function CakeLab() {
                   </div>
                 </div>
 
-                {/* Cake Diameter */}
+                {/* Cake Diameter Snap Pills */}
                 <div>
-                  <label className="text-xs font-bold text-wishes-chocolate/80 block mb-2">
-                    Kích Thước Đường Kính (Cake Diameter)
-                  </label>
-                  <div className="grid grid-cols-6 gap-1.5">
-                    {availableSizes.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => setSize(s)}
-                        className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
-                          size === s
-                            ? "bg-wishes-chocolate text-white shadow-sm"
-                            : "bg-white/60 text-wishes-chocolate hover:bg-white"
-                        }`}
-                      >
-                        {s}cm
-                      </button>
-                    ))}
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-wishes-chocolate/80">
+                      Kích Thước Đường Kính (Cake Diameter)
+                    </label>
+                    <span className="text-[10px] font-medium text-wishes-chocolate/60">
+                      Đế bánh chuẩn khẩu phần
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {availableSizes.map((s) => {
+                      const sInfo = getCakePricing(shape, s);
+                      const isSelected = size === s;
+                      return (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => setSize(s)}
+                          className={`p-2.5 rounded-xl text-left transition-all border flex flex-col justify-between ${
+                            isSelected
+                              ? "bg-wishes-chocolate text-white border-wishes-chocolate shadow-sm"
+                              : "bg-white/70 text-wishes-chocolate border-wishes-pink/30 hover:bg-white"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span className="text-xs font-bold">Ø {s}cm</span>
+                            <span
+                              className={`text-[10px] font-mono font-semibold ${
+                                isSelected ? "text-wishes-pink" : "text-wishes-cherry"
+                              }`}
+                            >
+                              {sInfo.price.replace(" VNĐ", "k")}
+                            </span>
+                          </div>
+                          <div
+                            className={`text-[9px] mt-1 leading-tight line-clamp-1 ${
+                              isSelected ? "text-white/80" : "text-wishes-chocolate/60"
+                            }`}
+                            title={sInfo.serving}
+                          >
+                            {sInfo.serving}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -769,6 +949,7 @@ export default function CakeLab() {
                   drawingState={drawingState}
                   onUpdateDrawing={setDrawingState}
                   cakeColor={frostingColor}
+                  cakeSize={size}
                 />
 
                 {/* Toppings & Accessories Grid */}
@@ -825,7 +1006,7 @@ export default function CakeLab() {
             {/* Stepper Navigation Footer Buttons */}
             <div className="flex items-center justify-between pt-4 mt-4 border-t border-wishes-chocolate/10">
               <button
-                onClick={() => setActiveStep((s) => Math.max(1, s - 1))}
+                onClick={() => handleStepChange(Math.max(1, activeStep - 1))}
                 disabled={activeStep === 1}
                 className="px-3.5 py-2 rounded-xl bg-white/70 text-xs font-bold text-wishes-chocolate hover:bg-white disabled:opacity-30 flex items-center gap-1.5 transition-all"
               >
@@ -839,7 +1020,7 @@ export default function CakeLab() {
 
               {activeStep < 5 ? (
                 <button
-                  onClick={() => setActiveStep((s) => Math.min(5, s + 1))}
+                  onClick={() => handleStepChange(Math.min(5, activeStep + 1))}
                   className="px-4 py-2 rounded-xl bg-wishes-cherry text-white text-xs font-bold hover:bg-wishes-cherry/90 flex items-center gap-1.5 transition-all shadow-sm"
                 >
                   <span>Tiếp Tục</span>
@@ -1030,7 +1211,7 @@ export default function CakeLab() {
                     ? "Custard Egg Tart"
                     : "Artisanal Soft Cookie"} ({size}cm)
                 </span>
-                <span>Priceless</span>
+                <span className="font-bold text-wishes-chocolate">{currentPricing.price}</span>
               </div>
               <div className="flex justify-between text-[10px] text-wishes-chocolate/70">
                 <span>• Frosting: {currentPantone}</span>
@@ -1051,6 +1232,10 @@ export default function CakeLab() {
                 <div>- 100% Hy vọng & Ngọt ngào</div>
                 <div>- 1 Tbsp Sự kỳ diệu của điều ước</div>
                 <div>- Hương dâu tươi tự nhiên</div>
+              </div>
+              <div className="flex justify-between pt-3 text-xs font-bold border-t border-wishes-chocolate/20">
+                <span>TỔNG CỘNG (TOTAL):</span>
+                <span className="text-wishes-cherry font-mono">{currentPricing.price}</span>
               </div>
             </div>
 
@@ -1104,6 +1289,7 @@ export default function CakeLab() {
         wishText={wishText}
         handwrittenText={drawingState.customText || drawingState.presetText}
         aestheticScore={95}
+        estimatedPrice={currentPricing.price}
       />
     </section>
   );

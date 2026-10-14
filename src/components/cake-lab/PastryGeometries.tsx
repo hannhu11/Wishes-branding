@@ -14,7 +14,226 @@ import {
   GELEE_OPTIONS,
   MOUSSE_OPTIONS,
 } from "./types";
-import { strokeTo3DCurve } from "./SmartPipingEngine";
+import { strokeTo3DCurve, createFlutedRosetteGeometry } from "./SmartPipingEngine";
+
+// --- PROCEDURAL PASTRY TEXTURES (MATERIAL TRUTH) ---
+
+/**
+ * Procedural Palette-Knife Spatula Frosting Bump Map
+ * 512x512 canvas texture with subtle horizontal swirl bands and micro air-pockets.
+ */
+export function createFrostingBumpMap(): THREE.CanvasTexture | null {
+  if (typeof document === "undefined") return null;
+  const size = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  const imgData = ctx.createImageData(size, size);
+  const data = imgData.data;
+
+  for (let y = 0; y < size; y++) {
+    // Subtle horizontal palette-knife bands
+    const band = Math.sin(y * 0.18) * 16 + Math.cos(y * 0.05) * 10;
+    for (let x = 0; x < size; x++) {
+      const idx = (y * size + x) * 4;
+      const swirl = Math.sin(x * 0.04 + band * 0.08 + Math.cos(y * 0.06) * 1.8) * 12;
+      const microNoise = (Math.random() - 0.5) * 10;
+
+      // Micro air pockets in buttercream
+      let pit = 0;
+      if (Math.random() < 0.0018) {
+        pit = -32;
+      }
+
+      const val = Math.min(255, Math.max(0, 128 + band + swirl + microNoise + pit));
+      data[idx] = val;
+      data[idx + 1] = val;
+      data[idx + 2] = val;
+      data[idx + 3] = 255;
+    }
+  }
+
+  ctx.putImageData(imgData, 0, 0);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(2, 2);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/**
+ * Procedural Sponge Crumb Alvéolage Bump Map (Slide 36-37)
+ * 512x512 cellular porous noise canvas texture mimicking baked sponge air pockets.
+ */
+export function createCrumbBumpMap(): THREE.CanvasTexture | null {
+  if (typeof document === "undefined") return null;
+  const size = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  ctx.fillStyle = "#808080";
+  ctx.fillRect(0, 0, size, size);
+
+  const imgData = ctx.getImageData(0, 0, size, size);
+  const data = imgData.data;
+
+  // Fine flour / crumb grain
+  for (let i = 0; i < data.length; i += 4) {
+    const grain = (Math.random() - 0.5) * 28;
+    const v = Math.min(255, Math.max(0, 128 + grain));
+    data[i] = v;
+    data[i + 1] = v;
+    data[i + 2] = v;
+    data[i + 3] = 255;
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  // Draw cellular porous air pockets (alvéoles)
+  for (let p = 0; p < 420; p++) {
+    const px = Math.random() * size;
+    const py = Math.random() * size;
+    const pr = 1.2 + Math.random() * 4.8;
+    const depth = 0.25 + Math.random() * 0.5;
+
+    const grad = ctx.createRadialGradient(px, py, 0, px, py, pr);
+    grad.addColorStop(0, `rgba(45, 45, 45, ${depth})`);
+    grad.addColorStop(0.65, `rgba(85, 85, 85, ${depth * 0.5})`);
+    grad.addColorStop(1, "rgba(128, 128, 128, 0)");
+
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(px, py, pr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(3, 3);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+/**
+ * Fluted Lambeth Shell Geometry for Royal Wilton #21 borders.
+ * Features teardrop taper profile: head swells to 1.25x radius, curls upward, and tapers to 0.25x.
+ */
+export function createLambethShellGeometry(baseRadius: number = 0.072): THREE.BufferGeometry {
+  const geom = new THREE.BufferGeometry();
+  const segments = 14;
+  const points = 8;
+  const numVerticesPerRing = points * 2;
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    let radiusScale = 0.35;
+    if (t < 0.25) {
+      const u = t / 0.25;
+      radiusScale = 0.35 + (1.25 - 0.35) * Math.sin(u * Math.PI * 0.5);
+    } else {
+      const u = (t - 0.25) / 0.75;
+      radiusScale = 1.25 - (1.25 - 0.25) * Math.sin(u * Math.PI * 0.5);
+    }
+
+    const rOuter = baseRadius * radiusScale;
+    const rInner = rOuter * (1 - 0.24);
+
+    // Shell curved arc trajectory
+    const xCenter = (t - 0.3) * 0.15;
+    const yCenter = Math.sin(t * Math.PI) * 0.035 - t * 0.012;
+    const zCenter = (1 - Math.cos(t * Math.PI * 0.5)) * 0.018;
+
+    for (let j = 0; j < numVerticesPerRing; j++) {
+      const angle = (j / numVerticesPerRing) * Math.PI * 2;
+      const r = j % 2 === 0 ? rOuter : rInner;
+      const rx = Math.cos(angle) * r;
+      const ry = Math.sin(angle) * r;
+
+      positions.push(xCenter + rx, yCenter + ry, zCenter);
+      uvs.push(j / numVerticesPerRing, t);
+    }
+  }
+
+  for (let i = 0; i < segments; i++) {
+    for (let j = 0; j < numVerticesPerRing; j++) {
+      const current = i * numVerticesPerRing + j;
+      const next = i * numVerticesPerRing + ((j + 1) % numVerticesPerRing);
+      const above = (i + 1) * numVerticesPerRing + j;
+      const aboveNext = (i + 1) * numVerticesPerRing + ((j + 1) % numVerticesPerRing);
+
+      indices.push(current, above, next);
+      indices.push(next, above, aboveNext);
+    }
+  }
+
+  // Cap start
+  const startCenterIdx = positions.length / 3;
+  positions.push(-0.3 * 0.15, 0, 0);
+  uvs.push(0.5, 0);
+  for (let j = 0; j < numVerticesPerRing; j++) {
+    const nextJ = (j + 1) % numVerticesPerRing;
+    indices.push(startCenterIdx, nextJ, j);
+  }
+
+  // Cap end
+  const endCenterIdx = positions.length / 3;
+  positions.push(0.7 * 0.15, -0.012, 0.018);
+  uvs.push(0.5, 1);
+  const lastRingOffset = segments * numVerticesPerRing;
+  for (let j = 0; j < numVerticesPerRing; j++) {
+    const nextJ = (j + 1) % numVerticesPerRing;
+    indices.push(endCenterIdx, lastRingOffset + j, lastRingOffset + nextJ);
+  }
+
+  geom.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geom.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+  geom.setIndex(indices);
+  geom.computeVertexNormals();
+
+  return geom;
+}
+
+/**
+ * Custom vertex-deformed sphere with indented stem cavity (lúm cuống cherry)
+ * and flattened bottom to nestle into a cream rosette.
+ */
+export function createRealisticCherryGeometry(): THREE.BufferGeometry {
+  const geom = new THREE.SphereGeometry(0.26, 36, 36);
+  const pos = geom.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    let x = pos.getX(i);
+    let y = pos.getY(i);
+    let z = pos.getZ(i);
+    const r = Math.sqrt(x * x + z * z);
+
+    // Stem cavity indentation at top pole
+    if (y > 0) {
+      y *= 1 - 0.28 * Math.exp(-r * r * 14);
+    }
+    // Bottom flattening where it nestles into cream
+    if (y < -0.06) {
+      y *= 0.88;
+    }
+    // Heart-like plumpness
+    const plump = 1 + 0.06 * Math.sin(((y + 0.26) / 0.52) * Math.PI);
+    x *= plump;
+    z *= plump;
+
+    pos.setXYZ(i, x, y, z);
+  }
+  geom.computeVertexNormals();
+  return geom;
+}
 
 // --- PROCEDURAL 3D ACCESSORIES & TOPPINGS (FROM PROPOSAL) ---
 
@@ -24,65 +243,141 @@ export function RealisticCherry({
 }: {
   position?: [number, number, number];
 }) {
+  const cherryGeometry = useMemo(() => createRealisticCherryGeometry(), []);
+  const rosetteGeometry = useMemo(() => createFlutedRosetteGeometry(0.12, 8, 8), []);
+
   const stemGeometry = useMemo(() => {
     const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(0, 0.22, 0),
-      new THREE.Vector3(0.06, 0.42, 0.04),
-      new THREE.Vector3(0.14, 0.62, 0.02),
-      new THREE.Vector3(0.08, 0.75, -0.06),
+      new THREE.Vector3(0, 0.2, 0),
+      new THREE.Vector3(0.05, 0.42, 0.03),
+      new THREE.Vector3(0.12, 0.62, 0.01),
+      new THREE.Vector3(0.08, 0.78, -0.05),
     ]);
-    return new THREE.TubeGeometry(curve, 20, 0.014, 8, false);
+    return new THREE.TubeGeometry(curve, 24, 0.012, 8, false);
   }, []);
 
   return (
     <group position={position}>
-      {/* Cherry Body */}
-      <mesh castShadow receiveShadow>
-        <sphereGeometry args={[0.26, 32, 32]} />
+      {/* Fluted Cream Rosette Bed underneath cherry */}
+      <mesh geometry={rosetteGeometry} position={[0, -0.22, 0]} castShadow receiveShadow>
         <meshPhysicalMaterial
-          color="#E60033"
-          roughness={0.04}
-          clearcoat={1.0}
-          clearcoatRoughness={0.06}
-          reflectivity={0.9}
-          ior={1.48}
+          color="#FFFDF5"
+          roughness={0.28}
+          clearcoat={0.25}
+          transmission={0.06}
+          thickness={0.6}
         />
       </mesh>
 
-      {/* Indentation */}
-      <mesh position={[0, 0.23, 0]}>
-        <torusGeometry args={[0.03, 0.015, 8, 16]} />
-        <meshStandardMaterial color="#5A0515" roughness={0.6} />
+      {/* Anatomically Accurate Ruby Cherry Body */}
+      <mesh geometry={cherryGeometry} castShadow receiveShadow>
+        <meshPhysicalMaterial
+          color="#E6194B"
+          roughness={0.05}
+          clearcoat={1.0}
+          clearcoatRoughness={0.03}
+          ior={1.48}
+          transmission={0.25}
+          thickness={0.8}
+          attenuationColor="#4A0010"
+        />
       </mesh>
 
-      {/* Curved Stem */}
+      {/* Indented Stem Cavity Core */}
+      <mesh position={[0, 0.19, 0]}>
+        <torusGeometry args={[0.026, 0.013, 8, 16]} />
+        <meshStandardMaterial color="#4A0010" roughness={0.7} />
+      </mesh>
+
+      {/* Curved Green Stem */}
       <mesh geometry={stemGeometry} castShadow>
-        <meshStandardMaterial color="#4A6B32" roughness={0.4} />
+        <meshStandardMaterial color="#5C8001" roughness={0.35} />
+      </mesh>
+
+      {/* Stem Knob at Tip */}
+      <mesh position={[0.08, 0.78, -0.05]} castShadow>
+        <sphereGeometry args={[0.022, 12, 12]} />
+        <meshStandardMaterial color="#405900" roughness={0.4} />
       </mesh>
 
       {/* Water Droplets */}
-      <mesh position={[0.12, 0.12, 0.18]}>
-        <sphereGeometry args={[0.032, 12, 12]} />
+      <mesh position={[0.11, 0.1, 0.17]}>
+        <sphereGeometry args={[0.03, 12, 12]} />
         <meshPhysicalMaterial
           color="#FFFFFF"
-          transmission={0.95}
-          opacity={1}
-          transparent
+          transmission={0.96}
           roughness={0}
           ior={1.33}
+          clearcoat={1.0}
         />
       </mesh>
-      <mesh position={[-0.14, 0.05, 0.16]}>
-        <sphereGeometry args={[0.024, 12, 12]} />
+      <mesh position={[-0.13, 0.04, 0.15]}>
+        <sphereGeometry args={[0.022, 12, 12]} />
         <meshPhysicalMaterial
           color="#FFFFFF"
-          transmission={0.95}
-          opacity={1}
-          transparent
+          transmission={0.96}
           roughness={0}
           ior={1.33}
+          clearcoat={1.0}
         />
       </mesh>
+    </group>
+  );
+}
+
+// Procedural Viscous Drip Rim for Mirror Glaze & Cinnamon Icing
+export function ViscousDripRim({
+  radius = 1.48,
+  y = 0.5,
+  color = "#C71585",
+  count = 28,
+}: {
+  radius?: number;
+  y?: number;
+  color?: string;
+  count?: number;
+}) {
+  const drips = useMemo(() => {
+    const arr = [];
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2;
+      const wave = Math.sin(angle * 12) + 0.5 * Math.cos(angle * 7);
+      const dripLength = 0.06 + Math.max(0.01, wave * 0.12 + 0.07);
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      arr.push({ x, z, dripLength });
+    }
+    return arr;
+  }, [radius, count]);
+
+  return (
+    <group position={[0, y, 0]}>
+      {drips.map((d, idx) => (
+        <group key={idx} position={[d.x, 0, d.z]}>
+          <mesh position={[0, -d.dripLength * 0.5, 0]} castShadow>
+            <cylinderGeometry args={[0.024, 0.014, d.dripLength, 10]} />
+            <meshPhysicalMaterial
+              color={color}
+              roughness={0.06}
+              clearcoat={1.0}
+              clearcoatRoughness={0.04}
+              transmission={0.2}
+              thickness={0.5}
+            />
+          </mesh>
+          <mesh position={[0, -d.dripLength, 0]} castShadow>
+            <sphereGeometry args={[0.026, 12, 12]} />
+            <meshPhysicalMaterial
+              color={color}
+              roughness={0.05}
+              clearcoat={1.0}
+              clearcoatRoughness={0.04}
+              transmission={0.22}
+              thickness={0.6}
+            />
+          </mesh>
+        </group>
+      ))}
     </group>
   );
 }
@@ -392,6 +687,8 @@ export function HautePipingPattern({
   scale?: number;
 }) {
   const count = style === "st-honore" ? 18 : style === "ruffle-ribbon" ? 36 : 28;
+  const lambethShellGeom = useMemo(() => createLambethShellGeometry(0.075), []);
+  const rosetteGeom = useMemo(() => createFlutedRosetteGeometry(0.075, 8, 8), []);
 
   const beads = useMemo(() => {
     const arr = [];
@@ -410,30 +707,20 @@ export function HautePipingPattern({
   return (
     <group position={[0, y, 0]} scale={[scale, scale, scale]}>
       {beads.map((b, idx) => (
-        <group key={idx} position={[b.x, 0, b.z]} rotation={[0.1, b.rotationY, -0.1]}>
+        <group key={idx} position={[b.x, 0, b.z]} rotation={[0.08, b.rotationY, -0.06]}>
           {style === "wilton-shell" && (
-            <>
-              {/* Shell bead */}
-              <mesh castShadow receiveShadow>
-                <sphereGeometry args={[0.075, 14, 14]} />
-                <meshPhysicalMaterial
-                  color={color}
-                  roughness={0.28}
-                  transmission={0.06}
-                  thickness={0.8}
-                  clearcoat={0.3}
-                />
-              </mesh>
-              {/* Teardrop tail */}
-              <mesh position={[0.035, -0.02, 0]} rotation={[0, 0, -0.4]}>
-                <coneGeometry args={[0.05, 0.12, 10]} />
-                <meshPhysicalMaterial
-                  color={color}
-                  roughness={0.28}
-                  clearcoat={0.3}
-                />
-              </mesh>
-            </>
+            <mesh geometry={lambethShellGeom} castShadow receiveShadow>
+              <meshPhysicalMaterial
+                color={color}
+                roughness={0.28}
+                clearcoat={0.35}
+                clearcoatRoughness={0.25}
+                transmission={0.06}
+                thickness={0.8}
+                sheen={0.4}
+                sheenColor={new THREE.Color("#FFFDF5")}
+              />
+            </mesh>
           )}
 
           {style === "st-honore" && (
@@ -460,14 +747,18 @@ export function HautePipingPattern({
           )}
 
           {style === "drop-flowers" && (
-            <group position={[0, 0.04, 0]}>
-              <mesh castShadow>
-                <sphereGeometry args={[0.08, 14, 14]} />
-                <meshPhysicalMaterial color={color} roughness={0.3} clearcoat={0.3} />
+            <group position={[0, 0.02, 0]}>
+              <mesh geometry={rosetteGeom} castShadow receiveShadow>
+                <meshPhysicalMaterial
+                  color={color}
+                  roughness={0.28}
+                  clearcoat={0.35}
+                  transmission={0.06}
+                />
               </mesh>
-              <mesh position={[0, 0.08, 0]}>
+              <mesh position={[0, 0.1, 0]}>
                 <sphereGeometry args={[0.022, 10, 10]} />
-                <meshPhysicalMaterial color="#FFFFFF" roughness={0.1} clearcoat={1.0} />
+                <meshPhysicalMaterial color="#FFFFFF" roughness={0.08} clearcoat={1.0} />
               </mesh>
             </group>
           )}
@@ -693,7 +984,17 @@ export function FullCrossSectionCutaway({
   frostingColor: string;
   finish: FrostingFinish;
 }) {
-  const scale = (size / 16) * 1.05;
+  const isCelebration =
+    shape === "round" || shape === "heart" || shape === "rectangle" || shape === "two-tier";
+  const radialScale = size / 16;
+  const heightScale = isCelebration ? (0.85 + ((size - 10) / 14) * 0.25) : (size / 16) * 1.05;
+  const groupScale: [number, number, number] = isCelebration
+    ? [radialScale, heightScale, radialScale]
+    : [(size / 16) * 1.05, (size / 16) * 1.05, (size / 16) * 1.05];
+
+  const crumbBumpMap = useMemo(() => createCrumbBumpMap(), []);
+  const frostingBumpMap = useMemo(() => createFrostingBumpMap(), []);
+
   const spongeObj = SPONGE_OPTIONS.find((s) => s.id === sponge);
   const geleeObj = GELEE_OPTIONS.find((g) => g.id === gelee);
   const mousseObj = MOUSSE_OPTIONS.find((m) => m.id === mousse);
@@ -705,16 +1006,24 @@ export function FullCrossSectionCutaway({
     shape === "cookie";
 
   return (
-    <group scale={[scale, scale, scale]} position={[0, -0.2, 0]}>
+    <group scale={groupScale} position={[0, -0.2, 0]}>
       {/* 3/4 Outer Frosting Shell */}
       <mesh position={[0, 0, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[1.5, 1.5, 1.0, 64, 1, false, 0, Math.PI * 1.5]} />
         <meshPhysicalMaterial
           color={frostingColor}
-          roughness={finish === "mirror-glaze" ? 0.04 : finish === "velvet-spray" ? 0.85 : 0.4}
-          clearcoat={finish === "mirror-glaze" ? 1.0 : 0.25}
-          transmission={0.06}
-          thickness={1.1}
+          roughness={finish === "mirror-glaze" ? 0.04 : finish === "velvet-spray" ? 0.85 : 0.32}
+          metalness={0.01}
+          clearcoat={finish === "mirror-glaze" ? 1.0 : 0.15}
+          clearcoatRoughness={0.4}
+          sheen={0.65}
+          sheenRoughness={0.5}
+          sheenColor={new THREE.Color("#FFF5EA")}
+          transmission={finish === "mirror-glaze" ? 0.15 : 0.08}
+          thickness={0.6}
+          attenuationColor={new THREE.Color("#FFE5D9")}
+          bumpMap={finish === "rustic-buttercream" ? (frostingBumpMap || undefined) : undefined}
+          bumpScale={0.018}
         />
       </mesh>
 
@@ -727,10 +1036,10 @@ export function FullCrossSectionCutaway({
         />
       </mesh>
 
-      {/* Layer 2: Main Sponge / Pastry Core */}
+      {/* Layer 2: Main Sponge / Pastry Core with Alvéolage Crumb Porosity */}
       <mesh position={[0, -0.26, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[1.46, 1.46, 0.26, 64, 1, false, 0, Math.PI * 1.5]} />
-        <meshStandardMaterial
+        <meshPhysicalMaterial
           color={
             shape === "cinnamon-roll"
               ? "#C89666"
@@ -742,7 +1051,9 @@ export function FullCrossSectionCutaway({
               ? "#4A2E1B"
               : spongeObj?.color || "#F7E7B4"
           }
-          roughness={spongeObj?.roughness || 0.75}
+          roughness={0.88}
+          bumpMap={crumbBumpMap || undefined}
+          bumpScale={0.035}
         />
       </mesh>
 
