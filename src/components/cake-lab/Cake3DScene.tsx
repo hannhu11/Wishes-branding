@@ -41,6 +41,8 @@ import {
   ArtisanalCookieMesh,
   CatY2KMesh,
   PuppyBowMesh,
+  BunnyBowMesh,
+  BearFaceMesh,
   FullCrossSectionCutaway,
   createFrostingBumpMap,
   createCrumbBumpMap,
@@ -112,7 +114,9 @@ export default function Cake3DScene({
     shape === "rectangle" ||
     shape === "two-tier" ||
     shape === "cat-y2k" ||
-    shape === "puppy-bow";
+    shape === "puppy-bow" ||
+    shape === "bunny-bow" ||
+    shape === "bear-face";
 
   const radialScale = size / 16;
   const heightScale = isCelebrationCake ? 0.85 + ((size - 10) / 14) * 0.25 : (size / 16) * 1.05;
@@ -188,6 +192,8 @@ export default function Cake3DScene({
         return { surfaceY: 0.505, surfaceRadius: 1.25 };
       case "cat-y2k":
       case "puppy-bow":
+      case "bunny-bow":
+      case "bear-face":
         return { surfaceY: 0.505, surfaceRadius: 1.38 };
       case "cinnamon-roll":
         return { surfaceY: 0.28, surfaceRadius: 0.95 };
@@ -427,7 +433,37 @@ export default function Cake3DScene({
       }
     }
 
-    // Standard round / 2-tier / animal cakes
+    // Mascot animal cakes (cat-y2k, puppy-bow, bunny-bow, bear-face): prevent ear and face collisions
+    if (
+      shape === "cat-y2k" ||
+      shape === "puppy-bow" ||
+      shape === "bunny-bow" ||
+      shape === "bear-face"
+    ) {
+      if (item.layout === "center") {
+        if (hasCenterTextOrPiping) {
+          return [[0, surfaceY, -surfaceRadius * 0.55]];
+        }
+        return [[0, surfaceY, -0.15]];
+      }
+      if (item.layout === "ring" || item.layout === "corners") {
+        return Array.from({ length: count }, (_, i) => {
+          // Spread across side and back perimeter, avoiding front face z > 0.8
+          const a = -Math.PI * 0.65 + (i / count) * Math.PI * 1.3;
+          return [Math.cos(a) * r * 0.9, surfaceY, Math.sin(a) * r * 0.9] as [number, number, number];
+        });
+      }
+      if (item.layout === "front-arc") {
+        const arcSpan = Math.PI * 0.45;
+        const startA = Math.PI * 0.5 - arcSpan / 2;
+        return Array.from({ length: count }, (_, i) => {
+          const a = count > 1 ? startA + (i / (count - 1)) * arcSpan : Math.PI * 0.5;
+          return [Math.cos(a) * r * 0.9, surfaceY, Math.sin(a) * r * 0.9] as [number, number, number];
+        });
+      }
+    }
+
+    // Standard round / 2-tier cakes
     if (item.layout === "center") {
       if (hasCenterTextOrPiping) {
         return [[0, surfaceY, -surfaceRadius * 0.65]];
@@ -669,7 +705,7 @@ export default function Cake3DScene({
 
       {shape === "cat-y2k" && (
         <group>
-          <CatY2KMesh frostingColor={frostingColor} />
+          <CatY2KMesh frostingColor={frostingColor} pipingColor={pipingColor} />
           <HautePipingPattern
             style={pipingStyle}
             radius={1.46}
@@ -688,7 +724,45 @@ export default function Cake3DScene({
 
       {shape === "puppy-bow" && (
         <group>
-          <PuppyBowMesh frostingColor={frostingColor} />
+          <PuppyBowMesh frostingColor={frostingColor} pipingColor={pipingColor} />
+          <HautePipingPattern
+            style={pipingStyle}
+            radius={1.46}
+            y={0.5}
+            color={pipingColor}
+            shapeType="round"
+          />
+          {canvasTexture && (
+            <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[surfaceRadius * 0.9, 32]} />
+              <meshBasicMaterial map={canvasTexture} transparent depthWrite={false} />
+            </mesh>
+          )}
+        </group>
+      )}
+
+      {shape === "bunny-bow" && (
+        <group>
+          <BunnyBowMesh frostingColor={frostingColor} pipingColor={pipingColor} />
+          <HautePipingPattern
+            style={pipingStyle}
+            radius={1.46}
+            y={0.5}
+            color={pipingColor}
+            shapeType="round"
+          />
+          {canvasTexture && (
+            <mesh position={[0, surfaceY + 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[surfaceRadius * 0.9, 32]} />
+              <meshBasicMaterial map={canvasTexture} transparent depthWrite={false} />
+            </mesh>
+          )}
+        </group>
+      )}
+
+      {shape === "bear-face" && (
+        <group>
+          <BearFaceMesh frostingColor={frostingColor} pipingColor={pipingColor} />
           <HautePipingPattern
             style={pipingStyle}
             radius={1.46}

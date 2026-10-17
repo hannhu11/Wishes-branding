@@ -1597,7 +1597,13 @@ export function ArtisanalCookieMesh({ color = "#FFAEC9" }: { color?: string }) {
 }
 
 // 5. Mèo Ngầu Y2K (Slide 58 FU CAKE)
-export function CatY2KMesh({ frostingColor = "#FFAEC9" }: { frostingColor?: string }) {
+export function CatY2KMesh({
+  frostingColor = "#FFAEC9",
+  pipingColor = "#FFFDF5",
+}: {
+  frostingColor?: string;
+  pipingColor?: string;
+}) {
   const roundBodyGeom = useMemo(() => createArtisanalCakeGeometry(1.5, 0.95, 0.045), []);
   return (
     <group position={[0, -0.05, 0]}>
@@ -1606,65 +1612,119 @@ export function CatY2KMesh({ frostingColor = "#FFAEC9" }: { frostingColor?: stri
         <meshPhysicalMaterial
           color={frostingColor}
           roughness={0.3}
-          clearcoat={0.2}
+          clearcoat={0.25}
           sheen={0.4}
           sheenColor={new THREE.Color("#FFF5EA")}
         />
       </mesh>
 
-      {/* 3D Sculpted Cat Ears */}
+      {/* 3D Sculpted Pointed Cat Ears with Inner Pink Pads */}
       {[-1, 1].map((dir, i) => (
         <group key={`ear-${i}`} position={[dir * 0.72, 0.62, -0.32]} rotation={[0.15, -dir * 0.2, dir * 0.25]}>
-          {/* Outer Ear */}
+          {/* Outer Ear Cone */}
           <mesh castShadow>
-            <coneGeometry args={[0.32, 0.55, 16]} />
-            <meshPhysicalMaterial color={frostingColor} roughness={0.3} />
+            <coneGeometry args={[0.34, 0.58, 18]} />
+            <meshPhysicalMaterial color={frostingColor} roughness={0.3} clearcoat={0.2} />
           </mesh>
-          {/* Inner Pink Ear Pad */}
-          <mesh position={[0, 0, 0.08]} rotation={[0.2, 0, 0]}>
-            <coneGeometry args={[0.22, 0.42, 16]} />
+          {/* Inner Sweet Pink Ear Pad */}
+          <mesh position={[0, 0, 0.09]} rotation={[0.2, 0, 0]}>
+            <coneGeometry args={[0.22, 0.44, 16]} />
             <meshPhysicalMaterial color="#FFB5C5" roughness={0.4} />
           </mesh>
         </group>
       ))}
 
-      {/* Y2K Star Sunglasses across front face (Slide 58) */}
-      <group position={[0, 0.22, 1.45]}>
-        {/* Left Star Lens */}
-        <mesh position={[-0.38, 0, 0]} rotation={[0, 0, 0.1]}>
-          <cylinderGeometry args={[0.24, 0.24, 0.03, 5]} />
-          <meshPhysicalMaterial color="#1A1A1A" roughness={0.1} clearcoat={1.0} />
+      {/* Airbrushed Star Spots across forehead & body (Slide 58) */}
+      {[
+        { x: -0.65, y: 0.35, z: 1.15, c: "#FF6B35", s: 0.05 },
+        { x: 0.72, y: 0.32, z: 1.1, c: "#FFAEC9", s: 0.045 },
+        { x: 0, y: 0.55, z: 1.25, c: "#FFE66D", s: 0.055 },
+        { x: -0.85, y: -0.1, z: 0.9, c: "#A0C4FF", s: 0.04 },
+        { x: 0.88, y: -0.08, z: 0.95, c: "#FF6B35", s: 0.045 },
+      ].map((star, idx) => (
+        <mesh key={`cat-star-${idx}`} position={[star.x, star.y, star.z]} rotation={[0, 0, idx * 0.6]}>
+          <cylinderGeometry args={[star.s, star.s, 0.015, 5]} />
+          <meshBasicMaterial color={star.c} />
         </mesh>
-        {/* Right Star Lens */}
-        <mesh position={[0.38, 0, 0]} rotation={[0, 0, -0.1]}>
-          <cylinderGeometry args={[0.24, 0.24, 0.03, 5]} />
-          <meshPhysicalMaterial color="#1A1A1A" roughness={0.1} clearcoat={1.0} />
-        </mesh>
-        {/* Bridge */}
-        <mesh position={[0, 0.04, 0]}>
-          <boxGeometry args={[0.32, 0.03, 0.02]} />
-          <meshStandardMaterial color="#FFD166" metalness={0.7} roughness={0.2} />
+      ))}
+
+      {/* Y2K Star Sunglasses across front face (Slide 58 FU CAKE) */}
+      <group position={[0, 0.24, 1.45]}>
+        {/* Left Star Sunglasses Frame & Lens */}
+        <group position={[-0.38, 0, 0]} rotation={[0, 0, 0.08]}>
+          {/* Outer Orange/Gold Frame */}
+          <mesh position={[0, 0, -0.01]}>
+            <cylinderGeometry args={[0.27, 0.27, 0.04, 5]} />
+            <meshStandardMaterial color="#FF6B35" metalness={0.6} roughness={0.2} />
+          </mesh>
+          {/* Dark Mirrored Lens */}
+          <mesh position={[0, 0, 0.015]}>
+            <cylinderGeometry args={[0.22, 0.22, 0.02, 5]} />
+            <meshPhysicalMaterial color="#111111" roughness={0.05} clearcoat={1.0} reflectivity={0.9} />
+          </mesh>
+          {/* Star Catchlight Reflection */}
+          <mesh position={[0.07, 0.07, 0.03]} rotation={[0, 0, 0.3]}>
+            <cylinderGeometry args={[0.04, 0.04, 0.005, 5]} />
+            <meshBasicMaterial color="#FFFFFF" />
+          </mesh>
+        </group>
+
+        {/* Right Star Sunglasses Frame & Lens */}
+        <group position={[0.38, 0, 0]} rotation={[0, 0, -0.08]}>
+          {/* Outer Orange/Gold Frame */}
+          <mesh position={[0, 0, -0.01]}>
+            <cylinderGeometry args={[0.27, 0.27, 0.04, 5]} />
+            <meshStandardMaterial color="#FF6B35" metalness={0.6} roughness={0.2} />
+          </mesh>
+          {/* Dark Mirrored Lens */}
+          <mesh position={[0, 0, 0.015]}>
+            <cylinderGeometry args={[0.22, 0.22, 0.02, 5]} />
+            <meshPhysicalMaterial color="#111111" roughness={0.05} clearcoat={1.0} reflectivity={0.9} />
+          </mesh>
+          {/* Star Catchlight Reflection */}
+          <mesh position={[-0.07, 0.07, 0.03]} rotation={[0, 0, 0.3]}>
+            <cylinderGeometry args={[0.04, 0.04, 0.005, 5]} />
+            <meshBasicMaterial color="#FFFFFF" />
+          </mesh>
+        </group>
+
+        {/* Chic Sunglasses Golden Bridge */}
+        <mesh position={[0, 0.04, 0.01]}>
+          <boxGeometry args={[0.26, 0.035, 0.02]} />
+          <meshStandardMaterial color="#DAA520" metalness={0.8} roughness={0.15} />
         </mesh>
       </group>
 
-      {/* Cat Whiskers and Button Nose */}
-      <group position={[0, -0.05, 1.48]}>
-        {/* Cute Pink Heart Nose */}
-        <mesh position={[0, 0, 0]}>
-          <sphereGeometry args={[0.045, 16, 16]} />
+      {/* Chubby Cream Muzzle Puffs (2 Sculpted Puffy Cheeks) */}
+      <group position={[0, -0.06, 1.48]}>
+        {/* Left Cheek Puff */}
+        <mesh position={[-0.14, 0, 0]} castShadow>
+          <sphereGeometry args={[0.13, 16, 16]} />
+          <meshPhysicalMaterial color="#FFFDF7" roughness={0.3} clearcoat={0.2} />
+        </mesh>
+        {/* Right Cheek Puff */}
+        <mesh position={[0.14, 0, 0]} castShadow>
+          <sphereGeometry args={[0.13, 16, 16]} />
+          <meshPhysicalMaterial color="#FFFDF7" roughness={0.3} clearcoat={0.2} />
+        </mesh>
+
+        {/* Cute Heart Nose */}
+        <mesh position={[0, 0.06, 0.08]} rotation={[0, 0, Math.PI]}>
+          <coneGeometry args={[0.055, 0.065, 3]} />
           <meshBasicMaterial color="#FF3366" />
         </mesh>
+
         {/* Piped Whiskers Left */}
-        {[-0.04, 0.04].map((wy, idx) => (
-          <mesh key={`lw-${idx}`} position={[-0.32, wy, 0]} rotation={[0, 0, wy * 3]}>
-            <boxGeometry args={[0.25, 0.015, 0.01]} />
+        {[-0.03, 0.03].map((wy, idx) => (
+          <mesh key={`lw-${idx}`} position={[-0.30, wy - 0.02, 0.04]} rotation={[0, 0, wy * 2.5]}>
+            <boxGeometry args={[0.22, 0.014, 0.01]} />
             <meshBasicMaterial color="#333333" />
           </mesh>
         ))}
         {/* Piped Whiskers Right */}
-        {[-0.04, 0.04].map((wy, idx) => (
-          <mesh key={`rw-${idx}`} position={[0.32, wy, 0]} rotation={[0, 0, -wy * 3]}>
-            <boxGeometry args={[0.25, 0.015, 0.01]} />
+        {[-0.03, 0.03].map((wy, idx) => (
+          <mesh key={`rw-${idx}`} position={[0.30, wy - 0.02, 0.04]} rotation={[0, 0, -wy * 2.5]}>
+            <boxGeometry args={[0.22, 0.014, 0.01]} />
             <meshBasicMaterial color="#333333" />
           </mesh>
         ))}
@@ -1675,7 +1735,7 @@ export function CatY2KMesh({ frostingColor = "#FFAEC9" }: { frostingColor?: stri
         style="drop-flowers"
         radius={1.52}
         y={-0.45}
-        color="#BDE0FE"
+        color={pipingColor || "#BDE0FE"}
         shapeType="round"
       />
     </group>
@@ -1683,7 +1743,13 @@ export function CatY2KMesh({ frostingColor = "#FFAEC9" }: { frostingColor?: stri
 }
 
 // 6. Cún Tai Dài Đính Nơ (Slide 59 FU CAKE)
-export function PuppyBowMesh({ frostingColor = "#FFF9E6" }: { frostingColor?: string }) {
+export function PuppyBowMesh({
+  frostingColor = "#FFF9E6",
+  pipingColor = "#A0C4FF",
+}: {
+  frostingColor?: string;
+  pipingColor?: string;
+}) {
   const roundBodyGeom = useMemo(() => createArtisanalCakeGeometry(1.5, 0.95, 0.045), []);
   return (
     <group position={[0, -0.05, 0]}>
@@ -1697,44 +1763,98 @@ export function PuppyBowMesh({ frostingColor = "#FFF9E6" }: { frostingColor?: st
         />
       </mesh>
 
-      {/* Two Long Floppy Droopy Cream Ears (Left & Right) */}
+      {/* Two Long Floppy Droopy Cream Ears (Left & Right) with Satin Bows */}
       {[-1, 1].map((dir, i) => (
         <group key={`ear-${i}`} position={[dir * 1.35, 0.22, 0.2]} rotation={[0, 0, -dir * 0.35]}>
           <mesh castShadow receiveShadow>
             <capsuleGeometry args={[0.24, 0.72, 16, 24]} />
             <meshPhysicalMaterial color={frostingColor} roughness={0.4} />
           </mesh>
-          {/* Blue Ribbon Bow at top of each ear (Slide 59) */}
-          <SatinRibbonBow position={[0, 0.42, 0.15]} scale={0.75} color="#A0C4FF" />
+          {/* Fluffy piped ear swirl texture rings */}
+          {[-0.15, 0.05, 0.22].map((ey, idx) => (
+            <mesh key={`ering-${idx}`} position={[0, ey, 0.05]} rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[0.22, 0.035, 8, 20]} />
+              <meshPhysicalMaterial color={frostingColor} roughness={0.35} />
+            </mesh>
+          ))}
+          {/* Baby Blue Satin Ribbon Bow at top of ear (Slide 59) */}
+          <SatinRibbonBow position={[0, 0.44, 0.15]} scale={0.78} color="#A0C4FF" />
         </group>
       ))}
 
+      {/* Airbrushed Star Spots on puppy cheeks & top */}
+      {[
+        { x: -0.65, y: 0.32, z: 1.1, c: "#A0C4FF" },
+        { x: 0.65, y: 0.32, z: 1.1, c: "#FFAEC9" },
+        { x: 0, y: 0.52, z: 1.2, c: "#FFE66D" },
+      ].map((star, idx) => (
+        <mesh key={`pup-star-${idx}`} position={[star.x, star.y, star.z]} rotation={[0, 0, idx * 0.7]}>
+          <cylinderGeometry args={[0.045, 0.045, 0.015, 5]} />
+          <meshBasicMaterial color={star.c} />
+        </mesh>
+      ))}
+
+      {/* Chubby Cream Muzzle Bump */}
+      <mesh position={[0, 0.06, 1.48]} castShadow>
+        <sphereGeometry args={[0.26, 20, 20]} />
+        <meshPhysicalMaterial color="#FFFDF7" roughness={0.28} clearcoat={0.2} />
+      </mesh>
+
       {/* Puppy Face: Glossy Black Button Eyes & Nose */}
-      <group position={[0, 0.12, 1.48]}>
-        {/* Nose */}
-        <mesh position={[0, -0.05, 0.02]} castShadow>
-          <sphereGeometry args={[0.065, 16, 16]} />
+      <group position={[0, 0.12, 1.55]}>
+        {/* Glossy Black Button Nose */}
+        <mesh position={[0, -0.04, 0.12]} castShadow>
+          <sphereGeometry args={[0.07, 16, 16]} />
           <meshPhysicalMaterial color="#1A1A1A" roughness={0.1} clearcoat={1.0} />
         </mesh>
-        {/* Left Eye */}
-        <mesh position={[-0.26, 0.08, 0]} castShadow>
-          <sphereGeometry args={[0.045, 16, 16]} />
-          <meshPhysicalMaterial color="#1A1A1A" roughness={0.1} clearcoat={1.0} />
-        </mesh>
-        {/* Right Eye */}
-        <mesh position={[0.26, 0.08, 0]} castShadow>
-          <sphereGeometry args={[0.045, 16, 16]} />
-          <meshPhysicalMaterial color="#1A1A1A" roughness={0.1} clearcoat={1.0} />
-        </mesh>
-        {/* Cute blush cheeks */}
-        <mesh position={[-0.42, -0.02, -0.02]}>
-          <circleGeometry args={[0.08, 16]} />
+        {/* Left Button Eye with White Catchlight */}
+        <group position={[-0.26, 0.08, 0]}>
+          <mesh castShadow>
+            <sphereGeometry args={[0.048, 16, 16]} />
+            <meshPhysicalMaterial color="#1A1A1A" roughness={0.1} clearcoat={1.0} />
+          </mesh>
+          <mesh position={[0.015, 0.015, 0.04]}>
+            <sphereGeometry args={[0.014, 8, 8]} />
+            <meshBasicMaterial color="#FFFFFF" />
+          </mesh>
+        </group>
+        {/* Right Button Eye with White Catchlight */}
+        <group position={[0.26, 0.08, 0]}>
+          <mesh castShadow>
+            <sphereGeometry args={[0.048, 16, 16]} />
+            <meshPhysicalMaterial color="#1A1A1A" roughness={0.1} clearcoat={1.0} />
+          </mesh>
+          <mesh position={[-0.015, 0.015, 0.04]}>
+            <sphereGeometry args={[0.014, 8, 8]} />
+            <meshBasicMaterial color="#FFFFFF" />
+          </mesh>
+        </group>
+
+        {/* Rosy Blush Cheeks */}
+        <mesh position={[-0.42, -0.04, -0.08]}>
+          <circleGeometry args={[0.09, 16]} />
           <meshBasicMaterial color="#FFAEC9" transparent opacity={0.65} />
         </mesh>
-        <mesh position={[0.42, -0.02, -0.02]}>
-          <circleGeometry args={[0.08, 16]} />
+        <mesh position={[0.42, -0.04, -0.08]}>
+          <circleGeometry args={[0.09, 16]} />
           <meshBasicMaterial color="#FFAEC9" transparent opacity={0.65} />
         </mesh>
+      </group>
+
+      {/* Front Paws with Ruby Cherry (Slide 59) */}
+      <group position={[0, -0.32, 1.42]}>
+        {/* Left Paw */}
+        <mesh position={[-0.25, 0, 0]} castShadow>
+          <sphereGeometry args={[0.13, 16, 16]} />
+          <meshPhysicalMaterial color={frostingColor} roughness={0.35} />
+        </mesh>
+        {/* Right Paw */}
+        <mesh position={[0.25, 0, 0]} castShadow>
+          <sphereGeometry args={[0.13, 16, 16]} />
+          <meshPhysicalMaterial color={frostingColor} roughness={0.35} />
+        </mesh>
+        {/* Glossy Ruby Cherry nestled at paw center */}
+        <RealisticCherry position={[0, 0.04, 0.08]} scale={0.72} />
       </group>
 
       {/* Base border rosettes */}
@@ -1742,7 +1862,210 @@ export function PuppyBowMesh({ frostingColor = "#FFF9E6" }: { frostingColor?: st
         style="wilton-shell"
         radius={1.52}
         y={-0.45}
-        color="#FFAEC9"
+        color={pipingColor || "#FFAEC9"}
+        shapeType="round"
+      />
+    </group>
+  );
+}
+
+// 7. Bánh Thỏ Tai Dài Harajuku (Harajuku Bunny Bow Cake - MỚI)
+export function BunnyBowMesh({
+  frostingColor = "#FFAEC9",
+  pipingColor = "#FFFDF5",
+}: {
+  frostingColor?: string;
+  pipingColor?: string;
+}) {
+  const roundBodyGeom = useMemo(() => createArtisanalCakeGeometry(1.5, 0.95, 0.045), []);
+  return (
+    <group position={[0, -0.05, 0]}>
+      {/* Plump Bunny Cake Body */}
+      <mesh geometry={roundBodyGeom} castShadow receiveShadow>
+        <meshPhysicalMaterial
+          color={frostingColor}
+          roughness={0.3}
+          clearcoat={0.2}
+          sheen={0.45}
+          sheenColor={new THREE.Color("#FFF5EA")}
+        />
+      </mesh>
+
+      {/* Tall Upright Bunny Ears with Sweet Pink Inner Pads */}
+      {[-1, 1].map((dir, i) => (
+        <group
+          key={`bunny-ear-${i}`}
+          position={[dir * 0.48, 0.88, -0.2]}
+          rotation={[0.12, -dir * 0.08, dir * 0.16]}
+        >
+          {/* Main Ear Column */}
+          <mesh castShadow receiveShadow>
+            <capsuleGeometry args={[0.18, 0.95, 16, 24]} />
+            <meshPhysicalMaterial color={frostingColor} roughness={0.32} clearcoat={0.2} />
+          </mesh>
+          {/* Inner Pink Ear Pad */}
+          <mesh position={[0, 0, 0.08]}>
+            <capsuleGeometry args={[0.11, 0.75, 16, 24]} />
+            <meshPhysicalMaterial color="#FFB5C5" roughness={0.4} />
+          </mesh>
+          {/* Satin Ribbon Bow at ear base */}
+          <SatinRibbonBow position={[0, -0.38, 0.16]} scale={0.75} color="#A0C4FF" />
+        </group>
+      ))}
+
+      {/* Daisy Rosette Flower Crown between ears */}
+      <PipedDaisyFlower position={[0, 0.58, 0.1]} scale={0.8} />
+
+      {/* Innocent Bunny Face: Black Button Eyes, Heart Nose & Cheeks */}
+      <group position={[0, 0.12, 1.48]}>
+        {/* Left Eye */}
+        <group position={[-0.24, 0.06, 0]}>
+          <mesh castShadow>
+            <sphereGeometry args={[0.045, 16, 16]} />
+            <meshPhysicalMaterial color="#1A1A1A" roughness={0.1} clearcoat={1.0} />
+          </mesh>
+          <mesh position={[0.015, 0.015, 0.038]}>
+            <sphereGeometry args={[0.013, 8, 8]} />
+            <meshBasicMaterial color="#FFFFFF" />
+          </mesh>
+        </group>
+        {/* Right Eye */}
+        <group position={[0.24, 0.06, 0]}>
+          <mesh castShadow>
+            <sphereGeometry args={[0.045, 16, 16]} />
+            <meshPhysicalMaterial color="#1A1A1A" roughness={0.1} clearcoat={1.0} />
+          </mesh>
+          <mesh position={[-0.015, 0.015, 0.038]}>
+            <sphereGeometry args={[0.013, 8, 8]} />
+            <meshBasicMaterial color="#FFFFFF" />
+          </mesh>
+        </group>
+
+        {/* Cute Heart-shaped Pink Bunny Nose */}
+        <mesh position={[0, -0.04, 0.03]} rotation={[0, 0, Math.PI]}>
+          <coneGeometry args={[0.05, 0.06, 3]} />
+          <meshBasicMaterial color="#FF3366" />
+        </mesh>
+
+        {/* Rosy Pink Blush */}
+        <mesh position={[-0.38, -0.06, -0.03]}>
+          <circleGeometry args={[0.08, 16]} />
+          <meshBasicMaterial color="#FFAEC9" transparent opacity={0.7} />
+        </mesh>
+        <mesh position={[0.38, -0.06, -0.03]}>
+          <circleGeometry args={[0.08, 16]} />
+          <meshBasicMaterial color="#FFAEC9" transparent opacity={0.7} />
+        </mesh>
+      </group>
+
+      {/* Base Flower Collar */}
+      <HautePipingPattern
+        style="drop-flowers"
+        radius={1.52}
+        y={-0.45}
+        color={pipingColor || "#FFFDF5"}
+        shapeType="round"
+      />
+    </group>
+  );
+}
+
+// 8. Bánh Bento Gấu Hàn Quốc (Korean Bento Bear Cake - MỚI)
+export function BearFaceMesh({
+  frostingColor = "#FFE66D",
+  pipingColor = "#FFF9E6",
+}: {
+  frostingColor?: string;
+  pipingColor?: string;
+}) {
+  const roundBodyGeom = useMemo(() => createArtisanalCakeGeometry(1.5, 0.95, 0.045), []);
+  return (
+    <group position={[0, -0.05, 0]}>
+      {/* Plump Bear Cake Body */}
+      <mesh geometry={roundBodyGeom} castShadow receiveShadow>
+        <meshPhysicalMaterial
+          color={frostingColor}
+          roughness={0.32}
+          clearcoat={0.2}
+          sheen={0.4}
+          sheenColor={new THREE.Color("#FFF5EA")}
+        />
+      </mesh>
+
+      {/* 2 Cute Round Bear Ears on top */}
+      {[-1, 1].map((dir, i) => (
+        <group
+          key={`bear-ear-${i}`}
+          position={[dir * 0.78, 0.58, -0.22]}
+          rotation={[0.1, -dir * 0.15, dir * 0.22]}
+        >
+          {/* Round Ear */}
+          <mesh castShadow receiveShadow>
+            <sphereGeometry args={[0.32, 20, 20]} />
+            <meshPhysicalMaterial color={frostingColor} roughness={0.35} />
+          </mesh>
+          {/* Inner Cream Ear Pad */}
+          <mesh position={[0, 0, 0.12]}>
+            <sphereGeometry args={[0.18, 16, 16]} />
+            <meshPhysicalMaterial color="#FFFDF7" roughness={0.3} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Mini Birthday Party Hat tilted playfully on right ear */}
+      <group position={[0.42, 0.76, 0.05]} rotation={[0.1, 0, -0.25]}>
+        <mesh castShadow>
+          <coneGeometry args={[0.2, 0.48, 16]} />
+          <meshPhysicalMaterial color="#FFAEC9" roughness={0.25} clearcoat={0.4} />
+        </mesh>
+        {/* Hat Pom-pom */}
+        <mesh position={[0, 0.27, 0]}>
+          <sphereGeometry args={[0.065, 12, 12]} />
+          <meshPhysicalMaterial color="#FFFDF7" roughness={0.2} />
+        </mesh>
+      </group>
+
+      {/* Cream Muzzle Oval */}
+      <mesh position={[0, 0.02, 1.48]} castShadow>
+        <sphereGeometry args={[0.28, 20, 20]} />
+        <meshPhysicalMaterial color="#FFFDF7" roughness={0.25} />
+      </mesh>
+
+      {/* Bear Face: Black Button Eyes, Chocolate Oval Nose & Smile */}
+      <group position={[0, 0.12, 1.56]}>
+        {/* Oval Chocolate Nose */}
+        <mesh position={[0, -0.07, 0.12]} castShadow>
+          <sphereGeometry args={[0.065, 16, 16]} />
+          <meshPhysicalMaterial color="#3D2314" roughness={0.15} clearcoat={1.0} />
+        </mesh>
+
+        {/* Eyes */}
+        <mesh position={[-0.28, 0.05, -0.04]} castShadow>
+          <sphereGeometry args={[0.045, 16, 16]} />
+          <meshPhysicalMaterial color="#3D2314" roughness={0.15} clearcoat={1.0} />
+        </mesh>
+        <mesh position={[0.28, 0.05, -0.04]} castShadow>
+          <sphereGeometry args={[0.045, 16, 16]} />
+          <meshPhysicalMaterial color="#3D2314" roughness={0.15} clearcoat={1.0} />
+        </mesh>
+
+        {/* Rosy Blush */}
+        <mesh position={[-0.44, -0.06, -0.1]}>
+          <circleGeometry args={[0.08, 16]} />
+          <meshBasicMaterial color="#FFAEC9" transparent opacity={0.7} />
+        </mesh>
+        <mesh position={[0.44, -0.06, -0.1]}>
+          <circleGeometry args={[0.08, 16]} />
+          <meshBasicMaterial color="#FFAEC9" transparent opacity={0.7} />
+        </mesh>
+      </group>
+
+      {/* Base Wilton Shell Border */}
+      <HautePipingPattern
+        style="wilton-shell"
+        radius={1.52}
+        y={-0.45}
+        color={pipingColor || "#FFF9E6"}
         shapeType="round"
       />
     </group>

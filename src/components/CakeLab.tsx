@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import Image from "next/image";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
@@ -37,6 +38,7 @@ import {
   DollarSign,
   X,
   Camera,
+  ArrowRight,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useInView } from "./common/useInView";
@@ -206,6 +208,24 @@ export function calculateItemizedBill({
       unitPrice: 65000,
       count: 1,
       totalPrice: 65000,
+    });
+  } else if (shape === "bunny-bow") {
+    lineItems.push({
+      id: "shape-bunny",
+      name: "Điêu Khắc Tạo Hình Thỏ Harajuku 3D",
+      category: "shape",
+      unitPrice: 65000,
+      count: 1,
+      totalPrice: 65000,
+    });
+  } else if (shape === "bear-face") {
+    lineItems.push({
+      id: "shape-bear-face",
+      name: "Tạo Hình Gấu Bento Hàn Quốc 3D",
+      category: "shape",
+      unitPrice: 55000,
+      count: 1,
+      totalPrice: 55000,
     });
   } else if (shape === "cookie-bear") {
     lineItems.push({
@@ -670,8 +690,8 @@ export default function CakeLab() {
           3D Cake Customizer & Blueprint
         </h2>
         <p className="mt-3 text-xs sm:text-sm text-wishes-chocolate/75 font-sans leading-relaxed">
-          Quy trình <strong>6 Bước Sáng Tạo Chuyên Nghiệp</strong>: Khám phá Lookbook 12 mẫu đỉnh cao,
-          10 hình thái bánh 3D, bóc tách mặt cắt chuẩn tỷ lệ, hệ thống AI gợi ý màu sắc, Studio
+          Quy trình <strong>6 Bước Sáng Tạo Chuyên Nghiệp</strong>: Khám phá Lookbook {PROPOSAL_PRESETS.length} mẫu đỉnh cao,
+          12 hình thái bánh 3D, bóc tách mặt cắt chuẩn tỷ lệ, hệ thống tự chỉnh màu sắc vô cực, Studio
           phụ kiện đa điểm và bộ công cụ Typography nổi khối 3D.
         </p>
 
@@ -685,7 +705,7 @@ export default function CakeLab() {
             <span>
               {showPresetsDrawer
                 ? "Đóng Thư Viện Proposal"
-                : "Thư Viện 12 Mẫu Đề Cương (Curated Lookbook)"}
+                : `Thư Viện ${PROPOSAL_PRESETS.length} Mẫu Đề Cương (Curated Lookbook)`}
             </span>
           </button>
         </div>
@@ -923,6 +943,10 @@ export default function CakeLab() {
                     ? "Mèo Ngầu Y2K"
                     : shape === "puppy-bow"
                     ? "Cún Tai Dài Đính Nơ"
+                    : shape === "bunny-bow"
+                    ? "Thỏ Tai Dài Harajuku"
+                    : shape === "bear-face"
+                    ? "Gấu Bento Hàn Quốc"
                     : shape === "cinnamon-roll"
                     ? "Quế Cuộn Kem Chảy"
                     : shape === "croissant" || shape === "croissant-bow"
@@ -1013,21 +1037,64 @@ export default function CakeLab() {
                     onClick={() => setShowPresetsDrawer(true)}
                     className="text-[10px] font-bold text-wishes-cherry bg-wishes-pink/30 px-2.5 py-1 rounded-lg hover:bg-wishes-pink/50 transition-all flex items-center gap-1"
                   >
-                    <BookOpen className="w-3 h-3" /> Mẫu Có Sẵn ({PROPOSAL_PRESETS.length})
+                    <BookOpen className="w-3 h-3" /> Thư Viện Mẫu ({PROPOSAL_PRESETS.length})
                   </button>
                 </div>
 
-                {/* 10 Pastry Shapes Categorized */}
+                {/* 1-Click Curated Lookbook Quick Bar */}
+                <div className="p-3 rounded-2xl bg-gradient-to-r from-wishes-pink/20 to-wishes-cream/40 border border-wishes-pink/40 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-wishes-chocolate flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-wishes-cherry" />
+                      <span>Mẫu Thiết Kế Đẹp 1-Chạm (Curated Lookbook)</span>
+                    </span>
+                    <button
+                      onClick={() => setShowPresetsDrawer(true)}
+                      className="text-[10px] font-bold text-wishes-cherry hover:underline flex items-center gap-1"
+                    >
+                      <span>Xem tất cả {PROPOSAL_PRESETS.length} mẫu</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1.5 pt-0.5">
+                    {PROPOSAL_PRESETS.slice(0, 8).map((p) => {
+                      const isSel = activePresetId === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => handleSelectPreset(p)}
+                          className={`flex-shrink-0 p-2 rounded-xl border text-left transition-all flex items-center gap-2 max-w-[175px] ${
+                            isSel
+                              ? "bg-white border-2 border-wishes-cherry shadow-sm scale-102"
+                              : "bg-white/80 hover:bg-white border-white/80 hover:border-wishes-pink"
+                          }`}
+                        >
+                          <div className="relative w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-stone-100">
+                            <Image src={p.image} alt={p.title} fill className="object-cover" sizes="40px" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-[10px] font-bold text-wishes-chocolate truncate">
+                              {p.title.split(". ")[1] || p.title}
+                            </div>
+                            <div className="text-[9px] text-wishes-cherry font-semibold">{p.price}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 12 Pastry Shapes Categorized */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-xs font-bold text-wishes-chocolate/80">
-                      Chọn 1 Trong 10 Hình Thái Bánh
+                      Chọn 1 Trong 12 Hình Thái Bánh
                     </label>
                     <div className="flex gap-1 bg-white/70 p-0.5 rounded-lg border border-wishes-pink/30">
                       <button
                         onClick={() => {
                           setShapeCategory("celebration");
-                          if (!["round", "heart", "rectangle", "two-tier", "cat-y2k", "puppy-bow"].includes(shape)) {
+                          if (!["round", "heart", "rectangle", "two-tier", "cat-y2k", "puppy-bow", "bunny-bow", "bear-face"].includes(shape)) {
                             setShape("round");
                           }
                         }}
@@ -1037,7 +1104,7 @@ export default function CakeLab() {
                             : "text-wishes-chocolate/70 hover:bg-white"
                         }`}
                       >
-                        🎂 Celebration (6)
+                        🎂 Celebration (8)
                       </button>
                       <button
                         onClick={() => {
@@ -1064,8 +1131,10 @@ export default function CakeLab() {
                           { id: "heart" as CakeShape, name: "Trái Tim Wonky", sub: "Y2K Sweetcore", icon: Heart },
                           { id: "rectangle" as CakeShape, name: "Chữ Nhật Baroque", sub: "150 × 200mm", icon: Boxes },
                           { id: "two-tier" as CakeShape, name: "2 Tầng Cung Đình", sub: "Đế 20 + Ngọn 12", icon: Cake },
-                          { id: "cat-y2k" as CakeShape, name: "Mèo Ngầu Y2K", sub: "Slide 58 FU CAKE", icon: Sparkles },
-                          { id: "puppy-bow" as CakeShape, name: "Cún Tai Dài Đính Nơ", sub: "Slide 59 FU CAKE", icon: Sparkles },
+                          { id: "cat-y2k" as CakeShape, name: "Mèo Ngầu Y2K", sub: "Kính Mát Sao Cam", icon: Sparkles },
+                          { id: "puppy-bow" as CakeShape, name: "Cún Tai Cụp Nơ", sub: "Nơ Lụa Xanh Baby", icon: Sparkles },
+                          { id: "bunny-bow" as CakeShape, name: "Thỏ Harajuku", sub: "Tai Dài Đính Nơ", icon: Sparkles },
+                          { id: "bear-face" as CakeShape, name: "Gấu Bento Hàn", sub: "Mặt Tròn Nón Tiệc", icon: Sparkles },
                         ]
                       : [
                           { id: "cookie-bear" as CakeShape, name: "Bánh Quy Gấu", sub: "Slide 42 & 62", icon: Sparkles },
@@ -1427,6 +1496,81 @@ export default function CakeLab() {
                         </span>
                       </button>
                     ))}
+                  </div>
+
+                  {/* Custom Color Studio & Hex Input (Tự Chỉnh Màu Vô Cực) */}
+                  <div className="mt-3 p-3 rounded-2xl bg-white/80 border border-wishes-pink/40 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-wishes-chocolate flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-wishes-cherry" />
+                        <span>Tự Chỉnh Màu Tự Do (Custom Color Studio)</span>
+                      </span>
+                      <span className="text-[10px] font-mono font-bold text-wishes-cherry">
+                        {frostingColor.toUpperCase()}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {/* Interactive Color Wheel Input */}
+                      <label className="relative cursor-pointer flex-shrink-0">
+                        <input
+                          type="color"
+                          value={frostingColor}
+                          onChange={(e) => setFrostingColor(e.target.value)}
+                          className="sr-only"
+                        />
+                        <div
+                          className="w-10 h-10 rounded-xl border-2 border-white shadow-sm flex items-center justify-center cursor-pointer transition-transform hover:scale-105"
+                          style={{ backgroundColor: frostingColor }}
+                          title="Bấm để mở bảng màu vô cực"
+                        >
+                          <Palette className="w-4 h-4 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]" />
+                        </div>
+                      </label>
+
+                      {/* Hex code input */}
+                      <div className="flex-1 relative">
+                        <input
+                          type="text"
+                          value={frostingColor}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val.startsWith("#") && (val.length <= 7)) {
+                              setFrostingColor(val);
+                            } else if (!val.startsWith("#") && val.length <= 6) {
+                              setFrostingColor(`#${val}`);
+                            }
+                          }}
+                          placeholder="#FFAEC9"
+                          className="w-full px-3 py-2 rounded-xl text-xs font-mono font-bold bg-white/90 border border-wishes-pink/30 text-wishes-chocolate focus:outline-none focus:border-wishes-cherry"
+                        />
+                      </div>
+
+                      {/* Quick Sync Buttons */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPipingColor(frostingColor);
+                          handleConfetti();
+                        }}
+                        className="px-2.5 py-2 rounded-xl text-[10px] font-bold bg-wishes-pink/30 hover:bg-wishes-pink/50 text-wishes-chocolate transition-all whitespace-nowrap"
+                        title="Đồng bộ màu này cho viền kem hoa"
+                      >
+                        Đồng Bộ Viền
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTypography((prev) => ({ ...prev, color: frostingColor }));
+                          setDrawingState((prev) => ({ ...prev, textColor: frostingColor }));
+                          handleConfetti();
+                        }}
+                        className="px-2.5 py-2 rounded-xl text-[10px] font-bold bg-wishes-cherry text-white hover:bg-wishes-cherry/90 transition-all whitespace-nowrap shadow-2xs"
+                        title="Gán màu này cho chữ viết nghệ thuật"
+                      >
+                        Gán Chữ
+                      </button>
+                    </div>
                   </div>
                 </div>
 
