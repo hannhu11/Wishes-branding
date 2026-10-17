@@ -147,7 +147,10 @@ export default function ExhibitionGallery() {
             className="group relative p-4 rounded-3xl glass-panel border border-white/80 shadow-pastel hover:shadow-dreamy hover:-translate-y-1.5 transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden"
           >
             {/* Image Preview with Hover Zoom */}
-            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-white/40 mb-3 border border-wishes-chocolate/10">
+            <div
+              style={{ position: "relative", width: "100%", aspectRatio: "4/3" }}
+              className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-white/40 mb-3 border border-wishes-chocolate/10"
+            >
               <Image
                 src={item.image}
                 alt={item.title}
@@ -203,7 +206,10 @@ export default function ExhibitionGallery() {
             </h3>
 
             {/* Large High-Res Image Display */}
-            <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-wishes-cream/40 border border-wishes-chocolate/10 my-4 shadow-inner">
+            <div
+              style={{ position: "relative", width: "100%", aspectRatio: "16/10" }}
+              className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-wishes-cream/40 border border-wishes-chocolate/10 my-4 shadow-inner"
+            >
               <Image
                 src={selectedItem.image}
                 alt={selectedItem.title}
