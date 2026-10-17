@@ -178,6 +178,23 @@ export default function BakingBlueprintModal({
       ? "Tart Trứng Custard Bồ Đào Nha (Pastéis de Nata - Slide 43/63)"
       : String(shape).toUpperCase();
 
+  const finishLabel =
+    finish === "rustic-buttercream"
+      ? "Kem Bơ Gợn Dao Mộc (Rustic Buttercream)"
+      : finish === "mirror-glaze"
+      ? "Thạch Tráng Gương Thủy Tinh (Mirror Glaze)"
+      : finish === "velvet-spray"
+      ? "Phun Nhung Tuyết Mịn (Velvet Spray)"
+      : finish === "airbrush-stars"
+      ? "Xịt Sơn Ngôi Sao Y2K (Airbrush Stars)"
+      : finish === "ombre-gradient"
+      ? "Loang Màu Ombré 2 Tầng Nghệ Thuật"
+      : finish === "holographic-glitter"
+      ? "Ánh Kim Tuyến Y2K Lấp Lánh (Holographic Glitter)"
+      : finish === "jelly-glass"
+      ? "Thạch Jelly Thủy Tinh Căng Bóng (Jelly Glass)"
+      : String(finish).replace("-", " ").toUpperCase();
+
   const handleDownload = () => {
     alert("Đã lưu hồ sơ kỹ thuật gia công bánh ngọt (Baking Blueprint Specification) thành công!");
     onClose();
@@ -353,7 +370,7 @@ export default function BakingBlueprintModal({
                 • Kem phủ chính: <strong>{colorObj?.pantone || "Pantone 189 C"}</strong> ({frostingColor})
               </div>
               <div className="text-[11px] text-stone-600 pl-2">↳ Hương vị: {colorObj?.flavorExtract || "Vani Bourbon"}</div>
-              <div>• Kiểu hoàn thiện: <strong>{finish.replace("-", " ").toUpperCase()}</strong></div>
+              <div>• Kiểu hoàn thiện: <strong>{finishLabel}</strong></div>
               <div>• Kem viền ren: <strong>Pantone 705 C</strong> (Trắng bơ Mascarpone)</div>
               <div>• Đui bắt kem: <strong>{pipingObj?.name}</strong></div>
               <div>• Vị trí bắt kem: <strong>{pipingPositionLabel}</strong></div>

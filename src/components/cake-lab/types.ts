@@ -37,7 +37,9 @@ export type FrostingFinish =
   | "mirror-glaze"
   | "velvet-spray"
   | "ombre-gradient"
-  | "airbrush-stars";
+  | "airbrush-stars"
+  | "holographic-glitter"
+  | "jelly-glass";
 
 export type PipingStyle =
   | "wilton-shell"
@@ -1535,5 +1537,95 @@ export const PROPOSAL_PRESETS: ProposalPreset[] = [
       "Sắc tím Lavender Dream mộng mơ huyền ảo với sóng kem St. Honoré vát nghiêng, nơ lụa satin và những vì sao airbrush lấp lánh.",
     curatorCritique:
       "Bản giao hưởng màu tím lãng mạn đầy chất thơ. Một sự lựa chọn hoàn hảo cho những tâm hồn mộng mơ và yêu chuộng cái đẹp.",
+  },
+  {
+    id: "preset-sunshine-daisy",
+    title: "19. Sunshine Daisy Retro Bento",
+    subtitle: "Bánh Mặt Trời Rực Rỡ Hoa Cúc & Kim Tuyến Y2K",
+    category: "celebration",
+    slide: "Slide 59 Bento Cute",
+    price: "445.000 VNĐ",
+    shape: "bear-face",
+    size: 14,
+    sponge: "vanilla-genoise",
+    gelee: "mango-passion",
+    mousse: "mascarpone-chantilly",
+    finish: "holographic-glitter",
+    frostingColor: "#FFE66D",
+    pipingStyle: "drop-flowers",
+    pipingColor: "#FFFFFF",
+    pipingPosition: "dual-rim",
+    toppings: {
+      cherry: false,
+      strawberry: false,
+      sprinkles: true,
+      ribbonBow: false,
+      spiralCandle: true,
+      crown: false,
+      enamelPin: false,
+    },
+    accessories: [
+      { id: "acc-sun-1", type: "piped-flowers", count: 1, layout: "ring", scale: 0.9, unitPrice: 20000 },
+      { id: "acc-sun-2", type: "sugar-pearls", count: 1, layout: "scatter", scale: 1.0, unitPrice: 15000 },
+      { id: "acc-sun-3", type: "number-candle", count: 1, layout: "center", scale: 1.0, customText: "20", unitPrice: 20000 },
+    ],
+    typography: {
+      text: "Be Sunny & Sweet",
+      font: "cute-handwritten",
+      fontSize: 26,
+      align: "center",
+      curve: "straight",
+      color: "#5C3D00",
+    },
+    image: "/assets/extracted_images/p59_01_celebration_cakes___big_and_sm.png",
+    description:
+      "Dáng gấu bento màu vàng chanh ánh kim tuyến Y2K lấp lánh, vương miện hoa cúc họa mi trắng tinh khôi và nến số phát sáng ngọt ngào.",
+    curatorCritique:
+      "Năng lượng tích cực ngập tràn! Màu vàng rực rỡ kết hợp lớp phủ kim tuyến holographic phản chiếu ánh sáng vui tươi, sinh động.",
+  },
+  {
+    id: "preset-jelly-coquette",
+    title: "20. Ruby Jelly Glass Coquette Heart",
+    subtitle: "Trái Tim Thạch Thủy Tinh & Ngọc Trai Quý Phái",
+    category: "celebration",
+    slide: "Slide 58 Coquette Vibe",
+    price: "495.000 VNĐ",
+    shape: "heart",
+    size: 16,
+    sponge: "red-velvet",
+    gelee: "dark-cherry",
+    mousse: "strawberry-velvet",
+    finish: "jelly-glass",
+    frostingColor: "#FF5C8A",
+    pipingStyle: "ruffle-ribbon",
+    pipingColor: "#FFF0F5",
+    pipingPosition: "full-lambeth-swag",
+    toppings: {
+      cherry: true,
+      strawberry: false,
+      sprinkles: true,
+      ribbonBow: true,
+      spiralCandle: false,
+      crown: false,
+      enamelPin: false,
+    },
+    accessories: [
+      { id: "acc-jelly-1", type: "cherry", count: 6, layout: "ring", scale: 0.85, unitPrice: 12000 },
+      { id: "acc-jelly-2", type: "satin-bow", count: 2, layout: "corners", scale: 0.9, unitPrice: 18000 },
+      { id: "acc-jelly-3", type: "sugar-pearls", count: 1, layout: "scatter", scale: 1.0, unitPrice: 15000 },
+    ],
+    typography: {
+      text: "Sweetest Love",
+      font: "script-calligraphy",
+      fontSize: 28,
+      align: "center",
+      curve: "arc-top",
+      color: "#FFFFFF",
+    },
+    image: "/assets/extracted_images/p58_02_product_line___celebration_cak.png",
+    description:
+      "Trái tim Wonky hồng san hô thạch thủy tinh trong suốt căng mọng, điểm xuyết 6 quả cherry đỏ mọng nước chạy vòng tròn và nơ satin đôi.",
+    curatorCritique:
+      "Đỉnh cao của sự quyến rũ vị giác! Độ bóng khúc xạ cao của chất liệu thạch thủy tinh kết hợp rèm ren Lambeth tạo cảm giác Haute Pâtisserie khó cưỡng.",
   },
 ];

@@ -164,6 +164,35 @@ export default function Cake3DScene({
         thickness: 0.6,
       };
     }
+    if (finish === "holographic-glitter") {
+      return {
+        roughness: 0.18,
+        metalness: 0.35,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.08,
+        reflectivity: 0.98,
+        sheen: 1.0,
+        sheenRoughness: 0.2,
+        sheenColor: new THREE.Color("#FFE66D"),
+        transmission: 0.08,
+        thickness: 0.7,
+        bumpMap: frostingBumpMap || undefined,
+        bumpScale: 0.015,
+      };
+    }
+    if (finish === "jelly-glass") {
+      return {
+        roughness: 0.02,
+        metalness: 0.0,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.01,
+        reflectivity: 0.98,
+        transmission: 0.45,
+        thickness: 1.8,
+        ior: 1.46,
+        attenuationColor: new THREE.Color(frostingColor),
+      };
+    }
     // Rustic Buttercream with SSS
     return {
       roughness: 0.32,

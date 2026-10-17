@@ -306,6 +306,26 @@ export function calculateItemizedBill({
       totalPrice: 25000,
       removable: true,
     });
+  } else if (finish === "holographic-glitter") {
+    lineItems.push({
+      id: "finish-glitter",
+      name: "Ánh Kim Tuyến Y2K Lấp Lánh (Holographic Glitter)",
+      category: "finish",
+      unitPrice: 30000,
+      count: 1,
+      totalPrice: 30000,
+      removable: true,
+    });
+  } else if (finish === "jelly-glass") {
+    lineItems.push({
+      id: "finish-jelly",
+      name: "Thạch Jelly Thủy Tinh Trong Suốt (Jelly Glass)",
+      category: "finish",
+      unitPrice: 30000,
+      count: 1,
+      totalPrice: 30000,
+      removable: true,
+    });
   }
 
   // 5. Piping Position Surcharges
@@ -1442,13 +1462,15 @@ export default function CakeLab() {
                   <label className="text-xs font-bold text-wishes-chocolate/80 block mb-2">
                     Trường Phái Hoàn Thiện Bề Mặt
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                     {[
                       { id: "rustic-buttercream" as FrostingFinish, title: "Rustic Butter", sub: "Gợn dao mộc (+0đ)" },
                       { id: "mirror-glaze" as FrostingFinish, title: "Mirror Glaze", sub: "Tráng gương (+25k)" },
                       { id: "velvet-spray" as FrostingFinish, title: "Velvet Spray", sub: "Phun nhung (+25k)" },
                       { id: "airbrush-stars" as FrostingFinish, title: "Airbrush Stars", sub: "Sao Y2K (+25k)" },
                       { id: "ombre-gradient" as FrostingFinish, title: "Ombré 2 Tầng", sub: "Loang màu (+25k)" },
+                      { id: "holographic-glitter" as FrostingFinish, title: "Kim Tuyến Y2K", sub: "Lấp lánh (+30k)" },
+                      { id: "jelly-glass" as FrostingFinish, title: "Jelly Thủy Tinh", sub: "Căng bóng (+30k)" },
                     ].map((f) => (
                       <button
                         key={f.id}
