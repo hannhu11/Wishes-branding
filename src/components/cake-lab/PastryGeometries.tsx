@@ -1268,7 +1268,7 @@ export function useWonkyHeartGeometry() {
 
     const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
     geom.center();
-    geom.rotateX(Math.PI / 2);
+    geom.rotateX(-Math.PI / 2);
     geom.computeVertexNormals();
     return geom;
   }, []);
@@ -1301,7 +1301,7 @@ export function useBaroqueRectangleGeometry() {
 
     const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
     geom.center();
-    geom.rotateX(Math.PI / 2);
+    geom.rotateX(-Math.PI / 2);
     geom.computeVertexNormals();
     return geom;
   }, []);
@@ -1868,7 +1868,7 @@ export function FullCrossSectionCutaway({
 
     const makeExtrusion = (s: THREE.Shape, depth: number) => {
       const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false });
-      g.rotateX(Math.PI / 2);
+      g.rotateX(-Math.PI / 2);
       return g;
     };
 
