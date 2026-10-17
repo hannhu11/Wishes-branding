@@ -91,3 +91,7 @@ optimize_assets.py
 *.pdf
 assets/
 
+
+.temp_screenshots/
+docs/audit/
+.agents/

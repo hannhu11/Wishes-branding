@@ -36,8 +36,10 @@ import {
   Sliders,
   DollarSign,
   X,
+  Camera,
 } from "lucide-react";
 import confetti from "canvas-confetti";
+import { useInView } from "./common/useInView";
 
 import {
   CakeShape,
@@ -63,7 +65,7 @@ import {
   PIPING_STYLES,
   PIPING_POSITIONS,
 } from "./cake-lab/types";
-import Cake3DScene from "./cake-lab/Cake3DScene";
+import Cake3DScene, { PhotoCaptureHelper, CapturedAngles } from "./cake-lab/Cake3DScene";
 import SmartPipingPad from "./cake-lab/SmartPipingPad";
 import ProposalPresetsDrawer from "./cake-lab/ProposalPresetsDrawer";
 import BakingBlueprintModal from "./cake-lab/BakingBlueprintModal";
@@ -475,6 +477,29 @@ export default function CakeLab() {
   const [showReceiptModal, setShowReceiptModal] = useState<boolean>(false);
   const [showStoryModal, setShowStoryModal] = useState<boolean>(false);
 
+  // InView Tiered Performance Hook (pauses WebGL render loop when offscreen)
+  const [sectionRef, isInView] = useInView<HTMLElement>({ rootMargin: "200px" });
+
+  // 4-Angle Blueprint Photo Capture Reference & State
+  const capturePhotosRef = useRef<(() => Promise<CapturedAngles>) | null>(null);
+  const [blueprintPhotos, setBlueprintPhotos] = useState<CapturedAngles | null>(null);
+  const [isCapturingPhotos, setIsCapturingPhotos] = useState<boolean>(false);
+
+  const handleOpenBlueprintWithPhotos = async () => {
+    setIsCapturingPhotos(true);
+    try {
+      if (capturePhotosRef.current) {
+        const photos = await capturePhotosRef.current();
+        setBlueprintPhotos(photos);
+      }
+    } catch (err) {
+      console.warn("Photo capture failed, falling back to blueprint schematics:", err);
+    } finally {
+      setIsCapturingPhotos(false);
+      setShowBlueprintModal(true);
+    }
+  };
+
   // Guardrail: Auto-doweling and soft-sponge lockout for 2-Tier & size >= 20
   useEffect(() => {
     if ((shape === "two-tier" || size >= 20) && sponge === "valrhona-cacao") {
@@ -634,7 +659,7 @@ export default function CakeLab() {
   ];
 
   return (
-    <section id="cake-lab" className="relative w-full py-24 px-4 sm:px-6 max-w-7xl mx-auto font-sans">
+    <section id="cake-lab" ref={sectionRef} className="relative w-full py-24 px-4 sm:px-6 max-w-7xl mx-auto font-sans">
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto mb-10">
         <span className="text-xs uppercase font-bold tracking-widest text-wishes-cherry px-3 py-1 rounded-full bg-wishes-pink/30 inline-flex items-center gap-1.5 mb-3">
@@ -688,18 +713,31 @@ export default function CakeLab() {
                 <span>360° Real-time WebGL Studio</span>
               </span>
 
-              {/* Cutaway Blueprint Mode Toggle */}
-              <button
-                onClick={() => setIsCutawayMode(!isCutawayMode)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm ${
-                  isCutawayMode
-                    ? "bg-wishes-cherry text-white shadow-pastel scale-105"
-                    : "bg-white/85 text-wishes-chocolate hover:bg-white"
-                }`}
-              >
-                <Scissors className="w-3.5 h-3.5" />
-                <span>{isCutawayMode ? "Đóng Mặt Cắt (Full 3D)" : "Bóc Tách Cốt Bánh (3D Cutaway)"}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {/* 4-Angle Photo Capture Button */}
+                <button
+                  onClick={handleOpenBlueprintWithPhotos}
+                  disabled={isCapturingPhotos}
+                  className="px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm bg-white/85 text-wishes-chocolate hover:bg-white disabled:opacity-60"
+                  title="Chụp 4 góc kỹ thuật tự động cho thợ làm bánh"
+                >
+                  <Camera className="w-3.5 h-3.5 text-wishes-cherry" />
+                  <span>{isCapturingPhotos ? "Đang chụp..." : "Chụp Hồ Sơ 4 Góc"}</span>
+                </button>
+
+                {/* Cutaway Blueprint Mode Toggle */}
+                <button
+                  onClick={() => setIsCutawayMode(!isCutawayMode)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm ${
+                    isCutawayMode
+                      ? "bg-wishes-cherry text-white shadow-pastel scale-105"
+                      : "bg-white/85 text-wishes-chocolate hover:bg-white"
+                  }`}
+                >
+                  <Scissors className="w-3.5 h-3.5" />
+                  <span>{isCutawayMode ? "Đóng Mặt Cắt (Full 3D)" : "Bóc Tách Cốt Bánh (3D Cutaway)"}</span>
+                </button>
+              </div>
             </div>
 
             {/* Dynamic Live Price & Serving Pill Badge with Interactive Popover Toggle */}
@@ -792,9 +830,15 @@ export default function CakeLab() {
             <div className="absolute inset-0 z-0">
               <Canvas
                 shadows
+                frameloop={isInView ? "always" : "never"}
                 camera={{ position: [0, 2.3, 4.6], fov: 42 }}
-                gl={{ antialias: true, alpha: true }}
-                dpr={typeof window !== "undefined" ? Math.min(window.devicePixelRatio, 1.75) : 1}
+                gl={{
+                  antialias: true,
+                  alpha: true,
+                  preserveDrawingBuffer: true,
+                  powerPreference: "high-performance",
+                }}
+                dpr={typeof window !== "undefined" ? Math.min(window.devicePixelRatio, 1.5) : 1}
               >
                 <ambientLight intensity={0.45} color="#FFF8F0" />
                 <directionalLight
@@ -835,6 +879,12 @@ export default function CakeLab() {
                   typography={typography}
                   activeStep={activeStep}
                   onCakeClick={handleCakeSurfaceClick}
+                />
+
+                <PhotoCaptureHelper
+                  onRegisterCapture={(fn) => {
+                    capturePhotosRef.current = fn;
+                  }}
                 />
 
                 <CameraRig
@@ -2024,13 +2074,14 @@ export default function CakeLab() {
               ) : (
                 <button
                   onClick={() => {
-                    setShowBlueprintModal(true);
+                    handleOpenBlueprintWithPhotos();
                     handleConfetti();
                   }}
-                  className="px-4 py-2 rounded-xl candy-btn text-xs font-bold flex items-center gap-1.5 shadow-pastel"
+                  disabled={isCapturingPhotos}
+                  className="px-4 py-2 rounded-xl candy-btn text-xs font-bold flex items-center gap-1.5 shadow-pastel disabled:opacity-60"
                 >
                   <Award className="w-4 h-4 text-wishes-cherry" />
-                  <span>Hoàn Tất & Xem Blueprint</span>
+                  <span>{isCapturingPhotos ? "Đang Chụp 4 Góc..." : "Hoàn Tất & Xem Blueprint"}</span>
                 </button>
               )}
             </div>
@@ -2062,13 +2113,14 @@ export default function CakeLab() {
 
             <button
               onClick={() => {
-                setShowBlueprintModal(true);
+                handleOpenBlueprintWithPhotos();
                 handleConfetti();
               }}
-              className="py-3 px-2 rounded-2xl bg-wishes-blue/25 border border-wishes-blue hover:bg-wishes-blue/40 text-xs font-bold text-wishes-chocolate flex flex-col items-center justify-center gap-1 shadow-sm transition-all"
+              disabled={isCapturingPhotos}
+              className="py-3 px-2 rounded-2xl bg-wishes-blue/25 border border-wishes-blue hover:bg-wishes-blue/40 text-xs font-bold text-wishes-chocolate flex flex-col items-center justify-center gap-1 shadow-sm transition-all disabled:opacity-60"
             >
               <FileText className="w-4 h-4 text-wishes-chocolate" />
-              <span>Bản Vẽ Cho Thợ Bánh</span>
+              <span>{isCapturingPhotos ? "Đang Chụp..." : "Bản Vẽ Cho Thợ Bánh"}</span>
             </button>
           </div>
         </div>
@@ -2256,6 +2308,7 @@ export default function CakeLab() {
         aestheticScore={98}
         estimatedPrice={bill.formattedGrandTotal}
         lineItems={bill.lineItems}
+        blueprintPhotos={blueprintPhotos}
       />
     </section>
   );

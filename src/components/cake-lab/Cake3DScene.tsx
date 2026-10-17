@@ -1,5 +1,5 @@
 import React, { useRef, useMemo, useEffect } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import {
   CakeShape,
@@ -46,6 +46,7 @@ import {
   createCrumbBumpMap,
   ViscousDripRim,
   createArtisanalCakeGeometry,
+  createSweetcoreHeartShape,
 } from "./PastryGeometries";
 import {
   strokeTo3DCurve,
@@ -182,22 +183,22 @@ export default function Cake3DScene({
       case "two-tier":
         return { surfaceY: 0.785, surfaceRadius: 0.95 };
       case "heart":
-        return { surfaceY: 0.755, surfaceRadius: 1.15 };
+        return { surfaceY: 0.52, surfaceRadius: 1.15 };
       case "rectangle":
-        return { surfaceY: 0.58, surfaceRadius: 1.25 };
+        return { surfaceY: 0.505, surfaceRadius: 1.25 };
       case "cat-y2k":
       case "puppy-bow":
         return { surfaceY: 0.505, surfaceRadius: 1.38 };
       case "cinnamon-roll":
-        return { surfaceY: 0.365, surfaceRadius: 0.95 };
+        return { surfaceY: 0.28, surfaceRadius: 0.95 };
       case "croissant":
       case "croissant-bow":
-        return { surfaceY: 0.48, surfaceRadius: 0.85 };
+        return { surfaceY: 0.35, surfaceRadius: 0.85 };
       case "egg-tart":
-        return { surfaceY: 0.35, surfaceRadius: 0.95 };
+        return { surfaceY: 0.25, surfaceRadius: 0.95 };
       case "cookie":
       case "cookie-bear":
-        return { surfaceY: 0.14, surfaceRadius: 1.1 };
+        return { surfaceY: 0.16, surfaceRadius: 1.1 };
       case "round":
       default:
         return { surfaceY: 0.505, surfaceRadius: 1.38 };
@@ -331,7 +332,28 @@ export default function Cake3DScene({
       return filled;
     }
 
-    const positions: [number, number, number][] = [];
+    const isDaily =
+      shape === "cinnamon-roll" ||
+      shape === "croissant" ||
+      shape === "croissant-bow" ||
+      shape === "egg-tart" ||
+      shape === "cookie" ||
+      shape === "cookie-bear";
+
+    // Daily pastries: do not scatter random cherries in thin air
+    if (isDaily) {
+      if (item.type === "cherry") {
+        if (shape === "egg-tart") return [[0.85, surfaceY + 0.12, 0.65]];
+        return [[0, surfaceY + 0.05, 0]];
+      }
+      if (item.type === "satin-bow") {
+        return [[0, surfaceY + 0.08, 0]];
+      }
+      if (item.type === "sugar-pearls") {
+        return []; // Pastry already has built-in sprinkles
+      }
+      return [[0, surfaceY + 0.05, 0]];
+    }
 
     // Enamel pin always mounted on front vertical wall / cake board ribbon
     if (item.type === "enamel-pin") {
@@ -340,73 +362,108 @@ export default function Cake3DScene({
       }
       const arcSpan = Math.PI * 0.35;
       const startA = Math.PI * 0.5 - arcSpan / 2;
-      for (let i = 0; i < count; i++) {
+      return Array.from({ length: count }, (_, i) => {
         const a = startA + (i / (count - 1)) * arcSpan;
-        positions.push([
+        return [
           Math.cos(a) * (surfaceRadius + 0.05),
           surfaceY - 0.35,
           Math.sin(a) * (surfaceRadius + 0.05),
-        ]);
-      }
-      return positions;
+        ] as [number, number, number];
+      });
     }
 
+    // Heart shape: Sample points along true sweetcore heart contour
+    if (shape === "heart") {
+      if (item.layout === "center") {
+        return [[0, surfaceY, hasCenterTextOrPiping ? -0.4 : 0.05]];
+      }
+      const heartShape = createSweetcoreHeartShape();
+      const pts = heartShape.getSpacedPoints(count);
+      return pts.map((p) => [p.x * 0.70, surfaceY, -p.y * 0.70] as [number, number, number]);
+    }
+
+    // Rectangle shape: Distribute along rectangular perimeter
+    if (shape === "rectangle") {
+      if (item.layout === "center") {
+        return [[0, surfaceY, hasCenterTextOrPiping ? -0.45 : 0]];
+      }
+      if (item.layout === "corners") {
+        const cx = 1.15;
+        const cz = 0.78;
+        const cornerCoords: [number, number][] = [
+          [-cx, -cz],
+          [cx, -cz],
+          [cx, cz],
+          [-cx, cz],
+        ];
+        return Array.from({ length: count }, (_, i) => [
+          cornerCoords[i % 4][0],
+          surfaceY,
+          cornerCoords[i % 4][1],
+        ]);
+      }
+      if (item.layout === "ring") {
+        const w = 1.15;
+        const h = 0.78;
+        return Array.from({ length: count }, (_, i) => {
+          const t = (i / count) * 4;
+          let x = 0;
+          let z = 0;
+          if (t < 1) {
+            x = -w + t * (2 * w);
+            z = -h;
+          } else if (t < 2) {
+            x = w;
+            z = -h + (t - 1) * (2 * h);
+          } else if (t < 3) {
+            x = w - (t - 2) * (2 * w);
+            z = h;
+          } else {
+            x = -w;
+            z = h - (t - 3) * (2 * h);
+          }
+          return [x, surfaceY, z] as [number, number, number];
+        });
+      }
+    }
+
+    // Standard round / 2-tier / animal cakes
     if (item.layout === "center") {
       if (hasCenterTextOrPiping) {
-        // Avoid center collision: place at top crest
         return [[0, surfaceY, -surfaceRadius * 0.65]];
       }
       return [[0, surfaceY, 0]];
     }
 
     if (item.layout === "ring") {
-      for (let i = 0; i < count; i++) {
+      return Array.from({ length: count }, (_, i) => {
         const a = (i / count) * Math.PI * 2;
-        positions.push([Math.cos(a) * r, surfaceY, Math.sin(a) * r]);
-      }
-      return positions;
+        return [Math.cos(a) * r, surfaceY, Math.sin(a) * r] as [number, number, number];
+      });
     }
 
     if (item.layout === "corners") {
-      if (shape === "rectangle") {
-        const cx = 1.1;
-        const cz = 0.8;
-        const cornerCoords: [number, number][] = [
-          [-cx, -cz],
-          [cx, -cz],
-          [-cx, cz],
-          [cx, cz],
-        ];
-        for (let i = 0; i < count; i++) {
-          const c = cornerCoords[i % 4];
-          positions.push([c[0], surfaceY, c[1]]);
-        }
-        return positions;
-      }
-      for (let i = 0; i < count; i++) {
+      return Array.from({ length: count }, (_, i) => {
         const a = Math.PI * 0.25 + (i / count) * Math.PI * 2;
-        positions.push([Math.cos(a) * r, surfaceY, Math.sin(a) * r]);
-      }
-      return positions;
+        return [Math.cos(a) * r, surfaceY, Math.sin(a) * r] as [number, number, number];
+      });
     }
 
     if (item.layout === "front-arc") {
       const arcSpan = Math.PI * 0.6;
       const startA = Math.PI * 0.5 - arcSpan / 2;
-      for (let i = 0; i < count; i++) {
+      return Array.from({ length: count }, (_, i) => {
         const a = count > 1 ? startA + (i / (count - 1)) * arcSpan : Math.PI * 0.5;
-        positions.push([Math.cos(a) * r, surfaceY, Math.sin(a) * r]);
-      }
-      return positions;
+        return [Math.cos(a) * r, surfaceY, Math.sin(a) * r] as [number, number, number];
+      });
     }
 
     // Default: scatter
-    for (let i = 0; i < count; i++) {
+    return Array.from({ length: count }, (_, i) => {
       const a = (i * 2.39996) % (Math.PI * 2);
       const dist = (0.35 + (i % 3) * 0.2) * r;
-      positions.push([Math.cos(a) * dist, surfaceY, Math.sin(a) * dist]);
-    }
-    return positions;
+      return [Math.cos(a) * dist, surfaceY, Math.sin(a) * dist] as [number, number, number];
+    });
   };
 
   // If in cutaway mode, render full 5-layer engineering cross-section
@@ -811,3 +868,69 @@ export default function Cake3DScene({
     </group>
   );
 }
+
+export interface CapturedAngles {
+  topDown: string;
+  front: string;
+  iso: string;
+  profile: string;
+}
+
+export function PhotoCaptureHelper({
+  onRegisterCapture,
+}: {
+  onRegisterCapture?: (fn: () => Promise<CapturedAngles>) => void;
+}) {
+  const { gl, scene, camera } = useThree();
+
+  useEffect(() => {
+    if (!onRegisterCapture) return;
+
+    const captureAll = async (): Promise<CapturedAngles> => {
+      // Save original camera configuration
+      const origPos = camera.position.clone();
+      const origRot = camera.rotation.clone();
+      const origFov = (camera as THREE.PerspectiveCamera).fov;
+
+      const takeSnapshotAt = (
+        pos: [number, number, number],
+        target: [number, number, number]
+      ): string => {
+        camera.position.set(...pos);
+        camera.lookAt(...target);
+        camera.updateMatrixWorld();
+        gl.render(scene, camera);
+        return gl.domElement.toDataURL("image/png");
+      };
+
+      // 1. Top-Down Blueprint Angle (0° azimuth, 90° elevation)
+      const topDown = takeSnapshotAt([0, 4.4, 0.01], [0, 0, 0]);
+
+      // 2. Front Elevation Angle (0° azimuth, 0° elevation)
+      const front = takeSnapshotAt([0, 0.7, 4.2], [0, 0.1, 0]);
+
+      // 3. Isometric Beauty Angle (45° azimuth, 30° elevation)
+      const iso = takeSnapshotAt([2.8, 2.4, 2.8], [0, 0.1, 0]);
+
+      // 4. Profile / Side Angle
+      const profile = takeSnapshotAt([-3.4, 1.1, 2.4], [0, 0.1, 0]);
+
+      // Restore camera state perfectly
+      camera.position.copy(origPos);
+      camera.rotation.copy(origRot);
+      if ((camera as THREE.PerspectiveCamera).fov !== origFov) {
+        (camera as THREE.PerspectiveCamera).fov = origFov;
+        (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
+      }
+      camera.updateMatrixWorld();
+      gl.render(scene, camera);
+
+      return { topDown, front, iso, profile };
+    };
+
+    onRegisterCapture(captureAll);
+  }, [gl, scene, camera, onRegisterCapture]);
+
+  return null;
+}
+

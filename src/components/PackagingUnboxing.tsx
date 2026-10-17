@@ -268,7 +268,10 @@ function HouseBox3DMesh({
 
 // --- MAIN PACKAGING UNBOXING COMPONENT ---
 
+import { useInView } from "./common/useInView";
+
 export default function PackagingUnboxing() {
+  const [sectionRef, isInView] = useInView<HTMLElement>({ rootMargin: "200px 0px" });
   const [unboxingProgress, setUnboxingProgress] = useState<number>(35); // 0 to 100%
   const [isBlueprintMode, setIsBlueprintMode] = useState<boolean>(false);
 
@@ -288,7 +291,7 @@ export default function PackagingUnboxing() {
   };
 
   return (
-    <section id="packaging" className="relative w-full py-24 px-6 max-w-7xl mx-auto">
+    <section ref={sectionRef} id="packaging" className="relative w-full py-24 px-6 max-w-7xl mx-auto">
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto mb-14">
         <span className="text-xs uppercase font-bold tracking-widest text-wishes-cherry px-3 py-1 rounded-full bg-wishes-pink/30 inline-block mb-3">
@@ -359,7 +362,9 @@ export default function PackagingUnboxing() {
               <Canvas
                 shadows
                 camera={{ position: [0, 2.5, 4.8], fov: 42 }}
-                gl={{ antialias: true, alpha: true }}
+                frameloop={isInView ? "always" : "never"}
+                dpr={[1, 1.5]}
+                gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
               >
                 <ambientLight intensity={1.1} />
                 <directionalLight

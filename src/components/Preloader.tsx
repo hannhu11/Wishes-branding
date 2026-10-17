@@ -47,6 +47,12 @@ export default function Preloader({ onComplete }: PreloaderProps) {
     return WISH_CARDS[0];
   }
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash) {
+      onComplete();
+    }
+  }, [onComplete]);
+
   // Trigger celebration explosion and card reveal
   const extinguishCandle = () => {
     if (isExtinguished) return;
@@ -153,6 +159,15 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       <div className="absolute inset-0 bg-noise pointer-events-none opacity-60" />
       <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-wishes-pink/30 blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-72 h-72 rounded-full bg-wishes-blue/30 blur-3xl pointer-events-none" />
+
+      {/* Skip button for fast entry */}
+      <button
+        onClick={onComplete}
+        className="absolute top-6 right-6 z-20 px-3.5 py-1.5 rounded-full glass-panel border border-wishes-chocolate/15 text-[11px] font-bold text-wishes-chocolate/70 hover:text-wishes-chocolate hover:bg-white/80 transition-all flex items-center gap-1.5"
+      >
+        <span>Bỏ qua nghi thức</span>
+        <ArrowRight className="w-3 h-3 text-wishes-cherry" />
+      </button>
 
       <div className="relative z-10 max-w-md w-full px-6 flex flex-col items-center text-center">
         {/* Brand Header */}

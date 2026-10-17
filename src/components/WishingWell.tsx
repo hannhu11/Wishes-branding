@@ -178,7 +178,10 @@ function CelestialRibbonGalaxy({
 
 // --- MAIN WISHING WELL COMPONENT ---
 
+import { useInView } from "./common/useInView";
+
 export default function WishingWell() {
+  const [sectionRef, isInView] = useInView<HTMLElement>({ rootMargin: "200px 0px" });
   const [authorName, setAuthorName] = useState("");
   const [wishText, setWishText] = useState("");
   const [wishes, setWishes] = useState<CommunityWish[]>(INITIAL_WISHES);
@@ -248,7 +251,7 @@ export default function WishingWell() {
   };
 
   return (
-    <section id="wishing-well" className="relative w-full py-24 px-6 max-w-7xl mx-auto">
+    <section ref={sectionRef} id="wishing-well" className="relative w-full py-24 px-6 max-w-7xl mx-auto">
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto mb-14">
         <span className="text-xs uppercase font-bold tracking-widest text-wishes-cherry px-3 py-1 rounded-full bg-wishes-pink/30 inline-block mb-3">
@@ -359,7 +362,12 @@ export default function WishingWell() {
 
           {/* 3D Galaxy Canvas */}
           <div className="absolute inset-0 z-0">
-            <Canvas camera={{ position: [0, 1.8, 5.0], fov: 45 }} gl={{ antialias: true, alpha: true }}>
+            <Canvas
+              camera={{ position: [0, 1.8, 5.0], fov: 45 }}
+              frameloop={isInView ? "always" : "never"}
+              dpr={[1, 1.5]}
+              gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+            >
               <ambientLight intensity={0.9} />
               <pointLight position={[0, 4, 3]} intensity={2.2} color="#FFF9E6" />
               <pointLight position={[-4, -2, -3]} intensity={2.5} color="#FFAEC9" />

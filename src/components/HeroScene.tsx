@@ -113,12 +113,21 @@ function SprinklesParticles({ count = 120 }) {
   );
 }
 
+import { useInView } from "./common/useInView";
+
 export default function HeroScene() {
+  const [sectionRef, isInView] = useInView<HTMLElement>({ rootMargin: "200px 0px" });
+
   return (
-    <section className="relative w-full min-h-screen flex items-center justify-center pt-20 pb-16 overflow-hidden">
+    <section ref={sectionRef} className="relative w-full min-h-screen flex items-center justify-center pt-20 pb-16 overflow-hidden">
       {/* 3D WebGL Background Canvas */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <Canvas camera={{ position: [0, 1.2, 4.8], fov: 42 }}>
+        <Canvas
+          camera={{ position: [0, 1.2, 4.8], fov: 42 }}
+          frameloop={isInView ? "always" : "never"}
+          dpr={[1, 1.5]}
+          gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+        >
           {/* Pastel Lighting Studio */}
           <ambientLight intensity={1.1} />
           <directionalLight position={[6, 8, 6]} intensity={1.6} color="#FFF5EA" castShadow />

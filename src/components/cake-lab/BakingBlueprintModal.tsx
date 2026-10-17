@@ -15,6 +15,7 @@ import {
   Type,
   Package,
   Heart,
+  Camera,
 } from "lucide-react";
 import {
   CakeShape,
@@ -44,6 +45,13 @@ interface BlueprintLineItem {
   unitPrice: number;
 }
 
+export interface CapturedBlueprintPhotos {
+  topDown?: string;
+  front?: string;
+  iso?: string;
+  profile?: string;
+}
+
 interface BlueprintModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -66,6 +74,7 @@ interface BlueprintModalProps {
   aestheticScore: number;
   estimatedPrice?: string;
   lineItems?: BlueprintLineItem[];
+  blueprintPhotos?: CapturedBlueprintPhotos | null;
 }
 
 export default function BakingBlueprintModal({
@@ -90,6 +99,7 @@ export default function BakingBlueprintModal({
   aestheticScore,
   estimatedPrice,
   lineItems = [],
+  blueprintPhotos,
 }: BlueprintModalProps) {
   if (!isOpen) return null;
 
@@ -216,6 +226,89 @@ export default function BakingBlueprintModal({
             <span className="text-[11px] font-serif font-black text-amber-800">{aestheticScore}/100</span>
           </div>
         </div>
+
+        {/* --- 4-ANGLE WORKSHOP PHOTO SPECIFICATION (BẢN VẼ GIA CÔNG 4 GÓC 1:1) --- */}
+        {blueprintPhotos && (
+          <div className="my-5 p-4 rounded-3xl bg-stone-50/90 border-2 border-wishes-blue/50 shadow-sm">
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-stone-200">
+              <div className="flex items-center gap-2">
+                <Camera className="w-4 h-4 text-wishes-cherry" />
+                <span className="text-xs font-bold uppercase tracking-wider text-wishes-chocolate">
+                  Hồ Sơ Ảnh Chụp Thực Tế 4 Góc Kỹ Thuật Cho Thợ Bánh (4-Angle Workshop Sheet)
+                </span>
+              </div>
+              <span className="text-[10px] text-stone-500 font-mono bg-white px-2 py-0.5 rounded-full border border-stone-200">
+                1:1 Real-time Captured
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* Angle 1: Top-down */}
+              <div className="rounded-2xl border border-stone-200 bg-white p-2 flex flex-col items-center shadow-xs">
+                <div className="w-full aspect-square rounded-xl overflow-hidden bg-stone-100/70 flex items-center justify-center border border-stone-200/60 relative group">
+                  {blueprintPhotos.topDown ? (
+                    <img src={blueprintPhotos.topDown} alt="Góc Trên Xuống (90°)" className="w-full h-full object-contain hover:scale-105 transition-transform" />
+                  ) : (
+                    <div className="text-[10px] text-stone-400">Đang tạo ảnh...</div>
+                  )}
+                  <span className="absolute bottom-1 right-1 text-[8px] font-mono bg-black/60 text-white px-1.5 py-0.5 rounded">90° Top</span>
+                </div>
+                <div className="mt-2 text-center">
+                  <div className="text-[10.5px] font-bold text-wishes-chocolate">1. Từ Trên Xuống</div>
+                  <div className="text-[9px] text-stone-500">Định vị bắt chữ & kẹo cốm</div>
+                </div>
+              </div>
+
+              {/* Angle 2: Front elevation */}
+              <div className="rounded-2xl border border-stone-200 bg-white p-2 flex flex-col items-center shadow-xs">
+                <div className="w-full aspect-square rounded-xl overflow-hidden bg-stone-100/70 flex items-center justify-center border border-stone-200/60 relative group">
+                  {blueprintPhotos.front ? (
+                    <img src={blueprintPhotos.front} alt="Góc Chính Diện (0°)" className="w-full h-full object-contain hover:scale-105 transition-transform" />
+                  ) : (
+                    <div className="text-[10px] text-stone-400">Đang tạo ảnh...</div>
+                  )}
+                  <span className="absolute bottom-1 right-1 text-[8px] font-mono bg-black/60 text-white px-1.5 py-0.5 rounded">0° Front</span>
+                </div>
+                <div className="mt-2 text-center">
+                  <div className="text-[10.5px] font-bold text-wishes-chocolate">2. Chính Diện</div>
+                  <div className="text-[9px] text-stone-500">Tỷ lệ tầng & nơ ruy-băng</div>
+                </div>
+              </div>
+
+              {/* Angle 3: Isometric */}
+              <div className="rounded-2xl border border-stone-200 bg-white p-2 flex flex-col items-center shadow-xs">
+                <div className="w-full aspect-square rounded-xl overflow-hidden bg-stone-100/70 flex items-center justify-center border border-stone-200/60 relative group">
+                  {blueprintPhotos.iso ? (
+                    <img src={blueprintPhotos.iso} alt="Góc Nghiêng 45°" className="w-full h-full object-contain hover:scale-105 transition-transform" />
+                  ) : (
+                    <div className="text-[10px] text-stone-400">Đang tạo ảnh...</div>
+                  )}
+                  <span className="absolute bottom-1 right-1 text-[8px] font-mono bg-black/60 text-white px-1.5 py-0.5 rounded">45° Iso</span>
+                </div>
+                <div className="mt-2 text-center">
+                  <div className="text-[10.5px] font-bold text-wishes-chocolate">3. Nghiêng Mỹ Thuật</div>
+                  <div className="text-[9px] text-stone-500">Độ nổi kem & phối cảnh</div>
+                </div>
+              </div>
+
+              {/* Angle 4: Profile */}
+              <div className="rounded-2xl border border-stone-200 bg-white p-2 flex flex-col items-center shadow-xs">
+                <div className="w-full aspect-square rounded-xl overflow-hidden bg-stone-100/70 flex items-center justify-center border border-stone-200/60 relative group">
+                  {blueprintPhotos.profile ? (
+                    <img src={blueprintPhotos.profile} alt="Góc Hông Trái" className="w-full h-full object-contain hover:scale-105 transition-transform" />
+                  ) : (
+                    <div className="text-[10px] text-stone-400">Đang tạo ảnh...</div>
+                  )}
+                  <span className="absolute bottom-1 right-1 text-[8px] font-mono bg-black/60 text-white px-1.5 py-0.5 rounded">Profile</span>
+                </div>
+                <div className="mt-2 text-center">
+                  <div className="text-[10.5px] font-bold text-wishes-chocolate">4. Góc Hông & Mặt Cắt</div>
+                  <div className="text-[9px] text-stone-500">Viền ren & thắt nơ hông</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 4 Technical Columns */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
